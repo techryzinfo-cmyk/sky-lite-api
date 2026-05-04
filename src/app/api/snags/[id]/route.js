@@ -8,6 +8,27 @@ import { recordAudit } from "@/lib/auditHelper";
 import { sendEmail } from "@/lib/email";
 import { snagAssignedEmail, snagStatusEmail } from "@/lib/emailTemplates";
 
+export const GET = withAuth(async function (req, { params }) {
+  try {
+    const { id } = await params;
+    await dbConnect();
+
+    const snag = await Snag.findById(id)
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("history.updatedBy", "name");
+
+    if (!snag) {
+      return NextResponse.json({ message: "Snag not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(snag);
+  } catch (error) {
+    console.error("Fetch snag error:", error);
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+});
+
 export const PATCH = withAuth(async function (req, { params }) {
   try {
     const { id } = await params;

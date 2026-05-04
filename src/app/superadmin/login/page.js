@@ -47,9 +47,6 @@ export default function SuperAdminLoginPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <p className="text-xs font-bold tracking-widest text-blue-400 uppercase mb-3">
-            Elite Platform
-          </p>
           <h1 className="text-4xl font-black text-white tracking-tight mb-2">
             Skystruct
           </h1>

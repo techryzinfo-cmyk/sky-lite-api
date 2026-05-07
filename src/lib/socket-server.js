@@ -20,14 +20,16 @@ const EMIT_SECRET       = process.env.SOCKET_EMIT_SECRET || 'pratham-internal-se
  */
 export async function emitToProject(projectId, event, payload = {}) {
   try {
-    await fetch(`${SOCKET_SERVER_URL}/emit`, {
+    const cleanPayload = payload.toJSON ? payload.toJSON() : payload;
+    const baseUrl = SOCKET_SERVER_URL.replace(/\/$/, '');
+    await fetch(`${baseUrl}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         secret: EMIT_SECRET,
         room:   `project:${projectId}`,
         event,
-        payload: { projectId, ...payload },
+        payload: { projectId, ...cleanPayload },
       }),
     });
   } catch {
@@ -40,14 +42,16 @@ export async function emitToProject(projectId, event, payload = {}) {
  */
 export async function emitToOrg(orgId, event, payload = {}) {
   try {
-    await fetch(`${SOCKET_SERVER_URL}/emit`, {
+    const cleanPayload = payload.toJSON ? payload.toJSON() : payload;
+    const baseUrl = SOCKET_SERVER_URL.replace(/\/$/, '');
+    await fetch(`${baseUrl}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         secret: EMIT_SECRET,
         room:   `org:${orgId}`,
         event,
-        payload: { orgId, ...payload },
+        payload: { orgId, ...cleanPayload },
       }),
     });
   } catch {

@@ -37,9 +37,7 @@ export default async function SuperAdminDashboard() {
       <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div>
-            <p className="text-xs font-bold tracking-widest text-blue-400 uppercase">
-              Elite Platform
-            </p>
+           
             <h1 className="text-xl font-black text-white tracking-tight">
               Skystruct
             </h1>

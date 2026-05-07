@@ -18,6 +18,7 @@ export const withAuth = (handler) => {
       const decoded = verifyAccessToken(token);
 
       if (!decoded) {
+        console.log("[withAuth] Token verification failed for header:", authHeader?.substring(0, 20) + "...");
         return NextResponse.json({ message: "Unauthorized: Invalid or expired token" }, { status: 401 });
       }
 

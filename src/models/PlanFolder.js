@@ -45,24 +45,26 @@ const PlanFolderSchema = new mongoose.Schema(
     },
     documents: [
       {
-        url:      String,
-        name:     String,
-        mimeType: String,
-        size:     Number,
-        uploadedAt: { type: Date, default: Date.now },
-
-        // Overall status (computed from approvals or set directly for Draft)
-        approvalStatus: {
-          type: String,
-          enum: ["Draft", "Pending", "Approved", "Rejected"],
-          default: "Draft",
-        },
-
-        // Legacy single-note field (kept for backwards compat)
-        approvalNote: { type: String, default: "" },
-
-        // Per-approver entries (populated when sent for approval)
-        approvals: { type: [ApprovalEntrySchema], default: [] },
+        name: { type: String, required: true }, // The logical name of the plan
+        versions: [
+          {
+            url:            { type: String, required: true },
+            name:           { type: String, required: true }, // Filename of this version
+            versionNumber:  { type: Number, required: true },
+            mimeType:       { type: String },
+            size:           { type: Number },
+            uploadedAt:     { type: Date, default: Date.now },
+            uploadedBy:     { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+            approvalStatus: {
+              type: String,
+              enum: ["Draft", "Pending", "Approved", "Rejected"],
+              default: "Draft",
+            },
+            approvalNote: { type: String, default: "" },
+            approvals:    { type: [ApprovalEntrySchema], default: [] },
+          },
+        ],
+        createdAt: { type: Date, default: Date.now },
       },
     ],
     annotations: { type: [AnnotationSchema], default: [] },

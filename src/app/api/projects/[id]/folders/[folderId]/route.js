@@ -9,12 +9,19 @@ import { emitToProject } from "@/lib/socket-server";
 
 // PUT /api/projects/[id]/folders/[folderId]
 // Add a document to a folder
+// PUT /api/projects/[id]/folders/[folderId]
+// Add a document (new plan or new version) to a folder
 export const PUT = withAuth(async function (req, { params }) {
   try {
     const { id, folderId } = await params;
     await dbConnect();
 
-    const { url, name, mimeType, size } = await req.json();
+    let { url, name, mimeType, size, documentId } = await req.json();
+
+    // Safety: if documentId was passed as an object, extract the ID
+    if (documentId && typeof documentId === 'object' && documentId._id) {
+      documentId = documentId._id;
+    }
 
     if (!url || !name) {
       return NextResponse.json({ message: "Document URL and name are required" }, { status: 400 });
@@ -25,7 +32,45 @@ export const PUT = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Folder not found in this project" }, { status: 404 });
     }
 
-    folder.documents.push({ url, name, mimeType, size, uploadedAt: new Date() });
+    let auditDetail = "";
+    if (documentId) {
+      // Add a new version to an existing logical plan
+      const plan = folder.documents.id(documentId);
+      if (!plan) return NextResponse.json({ message: "Plan entry not found" }, { status: 404 });
+
+      const nextVersionNumber = (plan.versions.length > 0 ? Math.max(...plan.versions.map(v => v.versionNumber)) : 0) + 1;
+
+      plan.versions.push({
+        url,
+        name, // The filename of this revision
+        versionNumber: nextVersionNumber,
+        mimeType,
+        size,
+        uploadedAt: new Date(),
+        uploadedBy: req.user.id,
+        approvalStatus: "Draft", // New versions always start as Draft
+        approvals: []
+      });
+      auditDetail = `Uploaded new version (v${nextVersionNumber}) for '${plan.name}' in folder '${folder.name}'`;
+    } else {
+      // Create a brand new plan entry with version 1
+      folder.documents.push({
+        name, // The display name of the plan
+        versions: [{
+          url,
+          name,
+          versionNumber: 1,
+          mimeType,
+          size,
+          uploadedAt: new Date(),
+          uploadedBy: req.user.id,
+          approvalStatus: "Draft",
+          approvals: []
+        }]
+      });
+      auditDetail = `Uploaded new plan '${name}' to folder '${folder.name}'`;
+    }
+
     await folder.save();
 
     const project = await Project.findById(id);
@@ -35,7 +80,7 @@ export const PUT = withAuth(async function (req, { params }) {
         userName: req.user.name || "User",
         userRole: req.user.role || "Member",
         action: "Update",
-        details: `Uploaded document '${name}' to folder '${folder.name}'`,
+        details: auditDetail,
       });
       await project.save();
     }
@@ -50,21 +95,8 @@ export const PUT = withAuth(async function (req, { params }) {
 /**
  * PATCH /api/projects/[id]/folders/[folderId]
  *
- * Three actions via `action` field:
- *
- * 1. action: "sendForApproval"
- *    Body: { docId, approverIds: [userId, ...] }
- *    → Only Admin. Sets doc to Pending, creates per-approver entries.
- *
- * 2. action: "respond"
- *    Body: { docId, response: "Approved"|"Rejected", note?: string }
- *    → Only users with plans:approve. Updates caller's approval entry.
- *      If all Approved → doc becomes Approved.
- *      Any Rejected → doc becomes Rejected immediately.
- *
- * 3. action: "revertToDraft"
- *    Body: { docId }
- *    → Only Admin. Clears approvals, resets to Draft.
+ * Actions now target a specific version within a plan entry.
+ * Body requires: { action, docId, versionId, ... }
  */
 export const PATCH = withAuth(async function (req, { params }) {
   try {
@@ -72,7 +104,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     await dbConnect();
 
     const body = await req.json();
-    const { action, docId } = body;
+    const { action, docId, versionId } = body;
 
     if (!docId || !action) {
       return NextResponse.json({ message: "docId and action are required" }, { status: 400 });
@@ -81,10 +113,23 @@ export const PATCH = withAuth(async function (req, { params }) {
     const folder = await PlanFolder.findOne({ _id: folderId, project: id });
     if (!folder) return NextResponse.json({ message: "Folder not found" }, { status: 404 });
 
-    const doc = folder.documents.id(docId);
-    if (!doc) return NextResponse.json({ message: "Document not found" }, { status: 404 });
+    const planEntry = folder.documents.id(docId);
+    if (!planEntry) return NextResponse.json({ message: "Plan entry not found" }, { status: 404 });
+
+    // Find the specific version
+    let version;
+    if (versionId) {
+      version = planEntry.versions.id(versionId);
+    } else {
+      // Fallback to latest version if versionId not provided (for compatibility)
+      version = planEntry.versions[planEntry.versions.length - 1];
+    }
+
+    if (!version) return NextResponse.json({ message: "Version not found" }, { status: 404 });
 
     const isAdmin = req.user.role === "Admin";
+    const userRoleDoc = await Role.findOne({ name: req.user.role, organization: req.user.organizationId });
+    const hasDeletePermission = isAdmin || userRoleDoc?.permissions?.includes("plans:delete");
 
     // ── 1. sendForApproval ──────────────────────────────────────────
     if (action === "sendForApproval") {
@@ -97,14 +142,13 @@ export const PATCH = withAuth(async function (req, { params }) {
         return NextResponse.json({ message: "At least one approver must be selected" }, { status: 400 });
       }
 
-      // Fetch approver user details
       const approvers = await User.find({ _id: { $in: approverIds } })
         .populate("role", "name")
         .select("name role");
 
-      doc.approvalStatus = "Pending";
-      doc.approvalNote = "";
-      doc.approvals = approvers.map((u) => ({
+      version.approvalStatus = "Pending";
+      version.approvalNote = "";
+      version.approvals = approvers.map((u) => ({
         user: u._id,
         userName: u.name,
         userRole: u.role?.name || "Member",
@@ -122,7 +166,7 @@ export const PATCH = withAuth(async function (req, { params }) {
           userName: req.user.name || "User",
           userRole: req.user.role || "Member",
           action: "Update",
-          details: `Document '${doc.name}' sent for approval to ${approvers.map((u) => u.name).join(", ")}`,
+          details: `Plan '${planEntry.name}' (v${version.versionNumber}) sent for approval to ${approvers.map((u) => u.name).join(", ")}`,
         });
         await project.save();
       }
@@ -138,7 +182,6 @@ export const PATCH = withAuth(async function (req, { params }) {
         return NextResponse.json({ message: "response must be Approved or Rejected" }, { status: 400 });
       }
 
-      // Permission check: must have plans:approve
       if (!isAdmin) {
         const userRole = await Role.findOne({ name: req.user.role, organization: req.user.organizationId });
         if (!userRole?.permissions?.includes("plans:approve")) {
@@ -146,30 +189,26 @@ export const PATCH = withAuth(async function (req, { params }) {
         }
       }
 
-      // Find this user's approval entry
-      const entry = doc.approvals.find((a) => a.user.toString() === req.user.id);
+      const entry = version.approvals.find((a) => a.user.toString() === req.user.id);
       if (!entry) {
-        return NextResponse.json({ message: "You are not an assigned approver for this document" }, { status: 403 });
+        return NextResponse.json({ message: "You are not an assigned approver for this version" }, { status: 403 });
       }
       if (entry.status !== "Pending") {
-        return NextResponse.json({ message: "You have already responded to this document" }, { status: 400 });
+        return NextResponse.json({ message: "You have already responded to this version" }, { status: 400 });
       }
 
       entry.status = response;
       entry.note = note || "";
       entry.respondedAt = new Date();
 
-      // Compute overall status
       if (response === "Rejected") {
-        doc.approvalStatus = "Rejected";
-        doc.approvalNote = note || "";
+        version.approvalStatus = "Rejected";
+        version.approvalNote = note || "";
       } else {
-        // Check if all approvers have approved
-        const allApproved = doc.approvals.every((a) => a.status === "Approved");
+        const allApproved = version.approvals.every((a) => a.status === "Approved");
         if (allApproved) {
-          doc.approvalStatus = "Approved";
+          version.approvalStatus = "Approved";
         }
-        // else stays "Pending" — others still need to respond
       }
 
       folder.markModified("documents");
@@ -182,7 +221,7 @@ export const PATCH = withAuth(async function (req, { params }) {
           userName: req.user.name || "User",
           userRole: req.user.role || "Member",
           action: "Update",
-          details: `Document '${doc.name}' ${response.toLowerCase()} by ${req.user.name}`,
+          details: `Plan '${planEntry.name}' (v${version.versionNumber}) ${response.toLowerCase()} by ${req.user.name}`,
         });
         await project.save();
       }
@@ -197,9 +236,9 @@ export const PATCH = withAuth(async function (req, { params }) {
         return NextResponse.json({ message: "Only admins can revert documents to Draft" }, { status: 403 });
       }
 
-      doc.approvalStatus = "Draft";
-      doc.approvalNote = "";
-      doc.approvals = [];
+      version.approvalStatus = "Draft";
+      version.approvalNote = "";
+      version.approvals = [];
 
       await folder.save();
 
@@ -210,7 +249,7 @@ export const PATCH = withAuth(async function (req, { params }) {
           userName: req.user.name || "User",
           userRole: req.user.role || "Member",
           action: "Update",
-          details: `Document '${doc.name}' reverted to Draft`,
+          details: `Plan '${planEntry.name}' (v${version.versionNumber}) reverted to Draft`,
         });
         await project.save();
       }
@@ -219,10 +258,15 @@ export const PATCH = withAuth(async function (req, { params }) {
       return NextResponse.json(folder);
     }
 
-    // ── 4. deleteDocument ──────────────────────────────────────────
+    // ── 4. deletePlanEntry (Delete the whole logical plan) ─────────
     if (action === "deleteDocument") {
-      if (!isAdmin) {
-        return NextResponse.json({ message: "Only admins can delete documents" }, { status: 403 });
+      if (!hasDeletePermission) {
+        return NextResponse.json({ message: "You don't have permission to delete plans" }, { status: 403 });
+      }
+
+      // Check if current targeted version is Approved - Only block if not authorized
+      if (version.approvalStatus === "Approved" && !hasDeletePermission) {
+        return NextResponse.json({ message: "You don't have permission to delete an approved plan" }, { status: 400 });
       }
 
       folder.documents.pull({ _id: docId });
@@ -235,7 +279,36 @@ export const PATCH = withAuth(async function (req, { params }) {
           userName: req.user.name || "User",
           userRole: req.user.role || "Member",
           action: "Update",
-          details: `Document '${doc.name}' deleted from folder '${folder.name}'`,
+          details: `Plan '${planEntry.name}' and all its versions deleted`,
+        });
+        await project.save();
+      }
+
+      emitToProject(id, 'plans:updated');
+      return NextResponse.json(folder);
+    }
+
+    // ── 5. deleteVersion ───────────────────────────────────────────
+    if (action === "deleteVersion") {
+      if (!hasDeletePermission) {
+        return NextResponse.json({ message: "You don't have permission to delete versions" }, { status: 403 });
+      }
+
+      if (planEntry.versions.length <= 1) {
+        return NextResponse.json({ message: "Cannot delete the only version. Delete the document instead." }, { status: 400 });
+      }
+
+      planEntry.versions.pull({ _id: versionId });
+      await folder.save();
+
+      const project = await Project.findById(id);
+      if (project) {
+        project.auditTrail.push({
+          user: req.user.id,
+          userName: req.user.name || "User",
+          userRole: req.user.role || "Member",
+          action: "Update",
+          details: `Version v${version.versionNumber} of plan '${planEntry.name}' deleted`,
         });
         await project.save();
       }

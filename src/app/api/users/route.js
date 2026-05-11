@@ -59,10 +59,18 @@ export const POST = withRole(async function (req) {
     await dbConnect();
     const { name, email, phoneNumber, roleId, projectIds, password } = await req.json();
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    // Check if user already exists with email
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
       return NextResponse.json({ message: "User already exists with this email" }, { status: 400 });
+    }
+
+    // Check if phone number is already taken
+    if (phoneNumber) {
+      const existingPhone = await User.findOne({ phoneNumber });
+      if (existingPhone) {
+        return NextResponse.json({ message: "Phone number is already assigned to another member" }, { status: 400 });
+      }
     }
 
     // Create new user — use provided password or fall back to default

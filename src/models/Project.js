@@ -11,6 +11,11 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TemplateCategory",
+      index: true,
+    },
     clientName: {
       type: String,
       trim: true,
@@ -25,7 +30,7 @@ const ProjectSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Initialized", "Planning", "Site Survey", "In Progress", "Under Snagging", "Snagging Completed", "Completed", "On Hold", "Cancelled"],
+      enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Completed", "On Hold", "Cancelled"],
       default: "Initialized",
       index: true,
     },

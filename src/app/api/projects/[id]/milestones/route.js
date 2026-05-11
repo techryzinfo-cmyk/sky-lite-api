@@ -51,6 +51,10 @@ export const POST = withAuth(async function (req, { params }) {
     await milestone.save();
     emitToProject(id, 'milestone:created', { milestoneId: milestone._id.toString() });
 
+    // Check if project should transition to Ongoing
+    const { checkAndTransitionToOngoing } = await import("@/lib/projectStatusHelper");
+    await checkAndTransitionToOngoing(id);
+
     return NextResponse.json(milestone, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: "Error creating milestone", error: error.message }, { status: 500 });

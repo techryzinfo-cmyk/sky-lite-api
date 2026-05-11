@@ -53,6 +53,10 @@ export const POST = withAuth(async function (req, { params }) {
 
     emitToProject(projectId, 'milestone:created', { count: createdMilestones.length });
 
+    // Check if project should transition to Ongoing
+    const { checkAndTransitionToOngoing } = await import("@/lib/projectStatusHelper");
+    await checkAndTransitionToOngoing(projectId);
+
     return NextResponse.json({ 
       message: `Successfully imported ${createdMilestones.length} milestones`,
       milestones: createdMilestones 

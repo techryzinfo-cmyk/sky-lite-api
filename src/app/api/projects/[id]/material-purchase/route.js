@@ -98,7 +98,7 @@ export const POST = withAuth(async function (req, { params }) {
 
     emitToProject(projectId, 'material:updated');
     return NextResponse.json({
-      message: "Material purchase logged successfully",
+      message: "Material purchase logged successfully (Pending Approval)",
       purchase: newPurchase
     }, { status: 201 });
   } catch (error) {

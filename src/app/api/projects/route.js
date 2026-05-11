@@ -11,7 +11,8 @@ export const GET = withAuth(async function (req) {
     const projects = await Project.find({ organization: req.user.organizationId })
       .populate("createdBy", "name email")
       .populate("members", "name email")
-      .populate("siteSurveyor", "name email");
+      .populate("siteSurveyor", "name email")
+      .populate("category", "name");
 
     // Find which projects have at least one Pending plan document
     const projectIds = projects.map((p) => p._id);
@@ -44,11 +45,12 @@ export const GET = withAuth(async function (req) {
 export const POST = withAuth(async function (req) {
   try {
     await dbConnect();
-    const { name, description, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
+    const { name, description, category, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
 
     const projectData = {
       name,
       description,
+      category,
       clientName,
       clientEmail,
       clientPhone,

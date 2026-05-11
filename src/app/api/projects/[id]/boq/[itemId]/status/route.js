@@ -115,6 +115,13 @@ export const PATCH = withAuth(async function (req, { params }) {
     }
 
     emitToProject(id, 'boq:updated');
+
+    // Check if project should transition to Ongoing
+    if (status === "Approved") {
+      const { checkAndTransitionToOngoing } = await import("@/lib/projectStatusHelper");
+      await checkAndTransitionToOngoing(id);
+    }
+
     return NextResponse.json(item);
   } catch (error) {
     console.error("BOQ status update error:", error);

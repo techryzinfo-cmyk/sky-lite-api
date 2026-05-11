@@ -104,7 +104,32 @@ export const PATCH = withAuth(async function (req, { params }) {
     await dbConnect();
 
     const body = await req.json();
-    const { action, docId, versionId } = body;
+    const { action, docId, versionId, name } = body;
+
+    // ── 0. Folder Rename Logic ────────────────────────────────────
+    if (name && !docId && !action) {
+      const folder = await PlanFolder.findOne({ _id: folderId, project: id });
+      if (!folder) return NextResponse.json({ message: "Folder not found" }, { status: 404 });
+      
+      const oldName = folder.name;
+      folder.name = name.trim();
+      await folder.save();
+
+      const project = await Project.findById(id);
+      if (project) {
+        project.auditTrail.push({
+          user: req.user.id,
+          userName: req.user.name || "User",
+          userRole: req.user.role || "Member",
+          action: "Update",
+          details: `Renamed plans folder from '${oldName}' to '${name.trim()}'`,
+        });
+        await project.save();
+      }
+
+      emitToProject(id, 'plans:updated');
+      return NextResponse.json(folder);
+    }
 
     if (!docId || !action) {
       return NextResponse.json({ message: "docId and action are required" }, { status: 400 });
@@ -227,6 +252,13 @@ export const PATCH = withAuth(async function (req, { params }) {
       }
 
       emitToProject(id, 'plans:updated');
+
+      // ── 2.1 check status transition ──────────────────────────────
+      if (version.approvalStatus === "Approved") {
+        const { checkAndTransitionToOngoing } = await import("@/lib/projectStatusHelper");
+        await checkAndTransitionToOngoing(id);
+      }
+
       return NextResponse.json(folder);
     }
 

@@ -18,6 +18,22 @@ export const PATCH = withRole(async function (req, { params }) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
+    // Check for email duplicates if email is being changed
+    if (email && email !== user.email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return NextResponse.json({ message: "Email is already assigned to another member" }, { status: 400 });
+      }
+    }
+
+    // Check for phone duplicates if phoneNumber is being changed
+    if (phoneNumber && phoneNumber !== user.phoneNumber) {
+      const existingPhone = await User.findOne({ phoneNumber });
+      if (existingPhone) {
+        return NextResponse.json({ message: "Phone number is already assigned to another member" }, { status: 400 });
+      }
+    }
+
     // Update fields if provided
     if (name) user.name = name;
     if (email) user.email = email;

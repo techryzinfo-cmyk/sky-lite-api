@@ -8,7 +8,7 @@
  */
 
 const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL || 'http://localhost:3001';
-const EMIT_SECRET       = process.env.SOCKET_EMIT_SECRET || 'pratham-internal-secret';
+const EMIT_SECRET = process.env.SOCKET_EMIT_SECRET || 'pratham-internal-secret';
 
 /**
  * Emit an event to all clients in a project room.
@@ -20,14 +20,14 @@ const EMIT_SECRET       = process.env.SOCKET_EMIT_SECRET || 'pratham-internal-se
  */
 export async function emitToProject(projectId, event, payload = {}) {
   try {
-    const cleanPayload = payload.toJSON ? payload.toJSON() : payload;
-    const baseUrl = SOCKET_SERVER_URL.replace(/\/$/, '');
-    await fetch(`${baseUrl}/emit`, {
+    const cleanPayload = payload && typeof payload.toJSON === 'function' ? payload.toJSON() : payload;
+    
+    await fetch(`${SOCKET_SERVER_URL}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         secret: EMIT_SECRET,
-        room:   `project:${projectId}`,
+        room: `project:${projectId}`,
         event,
         payload: { projectId, ...cleanPayload },
       }),
@@ -42,14 +42,14 @@ export async function emitToProject(projectId, event, payload = {}) {
  */
 export async function emitToOrg(orgId, event, payload = {}) {
   try {
-    const cleanPayload = payload.toJSON ? payload.toJSON() : payload;
-    const baseUrl = SOCKET_SERVER_URL.replace(/\/$/, '');
-    await fetch(`${baseUrl}/emit`, {
+    const cleanPayload = payload && typeof payload.toJSON === 'function' ? payload.toJSON() : payload;
+
+    await fetch(`${SOCKET_SERVER_URL}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         secret: EMIT_SECRET,
-        room:   `org:${orgId}`,
+        room: `org:${orgId}`,
         event,
         payload: { orgId, ...cleanPayload },
       }),

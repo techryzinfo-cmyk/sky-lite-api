@@ -14,7 +14,8 @@ export const GET = withAuth(async function (req, { params }) {
       organization: req.user.organizationId 
     })
     .sort({ createdAt: 1 })
-    .limit(100); // Last 100 messages
+    .populate('replyTo')
+    .limit(100); 
 
     return NextResponse.json(messages);
   } catch (error) {
@@ -26,7 +27,7 @@ export const POST = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
     const { id: projectId } = await params;
-    const { content, attachments } = await req.json();
+    const { content, attachments, replyTo } = await req.json();
 
     if (!content && (!attachments || attachments.length === 0)) {
       return NextResponse.json({ message: "Message content or attachment required" }, { status: 400 });
@@ -40,9 +41,15 @@ export const POST = withAuth(async function (req, { params }) {
       content,
       attachments: attachments || [],
       organization: req.user.organizationId,
+      replyTo: replyTo || null,
     };
 
-    const message = await ChatMessage.create(messageData);
+    let message = await ChatMessage.create(messageData);
+    
+    // Populate replyTo for the socket emission
+    if (replyTo) {
+      message = await ChatMessage.findById(message._id).populate('replyTo');
+    }
 
     // Broadcast message via socket
     emitToProject(projectId, 'chat:message', message);

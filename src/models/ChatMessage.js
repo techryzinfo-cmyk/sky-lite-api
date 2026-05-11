@@ -22,13 +22,12 @@ const ChatMessageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
       trim: true,
     },
     attachments: [
       {
         url: String,
-        type: { type: String, enum: ["image", "document"] },
+        type: { type: String, enum: ["image", "document", "video"] },
         name: String,
       },
     ],
@@ -37,6 +36,21 @@ const ChatMessageSchema = new mongoose.Schema(
       ref: "Organization",
       required: true,
       index: true,
+    },
+    reactions: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        userName: String,
+        emoji: String,
+      }
+    ],
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ChatMessage",
+    },
+    isEdited: {
+      type: Boolean,
+      default: false,
     },
   },
   {

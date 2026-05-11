@@ -108,7 +108,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     const { id: projectId } = await params;
     await dbConnect();
 
-    const { action, rejectionReason } = await req.json(); // action = "Approve" or "Reject"
+    const { action, rejectionReason, ...updatePayload } = await req.json(); // action = "Approve" or "Reject" or "UpdateDetails"
     const survey = await SiteSurvey.findOne({ project: projectId, organization: req.user.organizationId });
     const project = await Project.findOne({ _id: projectId, organization: req.user.organizationId });
 
@@ -118,7 +118,6 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     if (action === "Approve") {
       survey.status = "Approved";
-
       project.auditTrail.push({
         user: req.user.id,
         userName: req.user.name || "Admin",
@@ -136,6 +135,33 @@ export const PATCH = withAuth(async function (req, { params }) {
         userRole: req.user.role || "Admin",
         action: "Update",
         details: `Site Survey Rejected. Reason: ${rejectionReason}`,
+      });
+    } else if (action === "UpdateDetails") {
+      // Validate that the user is the original surveyor
+      if (survey.surveyor.toString() !== req.user.id) {
+        return NextResponse.json({ message: "Only the original surveyor can update details" }, { status: 403 });
+      }
+
+      // Validate that it's not approved yet
+      if (survey.status === "Approved") {
+        return NextResponse.json({ message: "Approved surveys cannot be modified" }, { status: 400 });
+      }
+
+      // Update the survey fields
+      Object.assign(survey, updatePayload);
+      
+      // If it was "Needs Attention", move it back to "Submitted"
+      if (survey.status === "Needs Attention") {
+        survey.status = "Submitted";
+        project.status = "Planning"; // Advance project again
+      }
+
+      project.auditTrail.push({
+        user: req.user.id,
+        userName: req.user.name || "Surveyor",
+        userRole: req.user.role || "Surveyor",
+        action: "Update",
+        details: "Site Survey details updated by surveyor.",
       });
     }
 

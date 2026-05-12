@@ -3,11 +3,12 @@ import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import PlanFolder from "@/models/PlanFolder";
 import { withAuth } from "@/lib/middleware";
-
+import User from "@/models/User";
+import TemplateCategory from "@/models/TemplateCategory";
+import Organization from "@/models/Organization";
 export const GET = withAuth(async function (req) {
   try {
     await dbConnect();
-    console.log("hello")
     const projects = await Project.find({ organization: req.user.organizationId })
       .populate("createdBy", "name email")
       .populate("members", "name email")
@@ -38,7 +39,9 @@ export const GET = withAuth(async function (req) {
 
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching projects", error: error.message }, { status: 500 });
+    console.error("GET /api/projects error:", error);
+    require('fs').writeFileSync('error_log.txt', error.stack || error.message);
+    return NextResponse.json({ message: "Error fetching projects", error: error.message, stack: error.stack }, { status: 500 });
   }
 });
 

@@ -33,6 +33,7 @@ const MaterialReceiptSchema = new mongoose.Schema(
       }
     ],
     commonNote: String,
+    invoiceUrl: String,
     
     // Verification Workflow
     status: {

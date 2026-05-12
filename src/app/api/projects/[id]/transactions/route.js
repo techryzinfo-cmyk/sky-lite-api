@@ -28,7 +28,7 @@ export const POST = withAuth(async function (req, { params }) {
     
     const { 
       type, amount, date, paymentMethod, partyName, 
-      referenceNumber, category, description, linkedPurchase 
+      referenceNumber, category, description, linkedPurchase, invoiceUrl
     } = await req.json();
 
     if (!type || !amount || !partyName) {
@@ -48,6 +48,7 @@ export const POST = withAuth(async function (req, { params }) {
       referenceNumber: referenceNumber || "",
       category: category || "",
       description: description || "",
+      invoiceUrl: invoiceUrl || null,
       linkedPurchase: linkedPurchase || null
     });
 

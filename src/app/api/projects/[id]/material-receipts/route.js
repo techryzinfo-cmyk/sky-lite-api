@@ -30,7 +30,7 @@ export const POST = withAuth(async function (req, { params }) {
   try {
     const { id: projectId } = await params;
     await dbConnect();
-    const { items, commonNote, vendorName, challanNumber, invoiceNumber } = await req.json();
+    const { items, commonNote, vendorName, challanNumber, invoiceNumber, invoiceUrl } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ message: "No items provided" }, { status: 400 });
@@ -68,6 +68,7 @@ export const POST = withAuth(async function (req, { params }) {
       invoiceNumber: invoiceNumber || "",
       items: processedItems,
       commonNote: commonNote || "",
+      invoiceUrl: invoiceUrl || null,
       status: "Verified"
     });
 

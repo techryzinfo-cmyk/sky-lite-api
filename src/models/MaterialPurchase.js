@@ -45,6 +45,8 @@ const MaterialPurchaseSchema = new mongoose.Schema(
     },
     
     commonNote: String,
+    invoiceUrl: String,
+    billNumber: String,
     
     status: {
       type: String,

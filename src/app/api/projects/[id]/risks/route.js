@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Risk from "@/models/Risk";
 import Project from "@/models/Project";
+import Notification from "@/models/Notification";
+import User from "@/models/User";
 import { withAuth } from "@/lib/middleware";
-import { emitToProject } from "@/lib/socket-server";
+import { emitToProject, emitToUser } from "@/lib/socket-server";
 import { recordAudit } from "@/lib/auditHelper";
 
 export const GET = withAuth(async function (req, { params }) {
   try {
-    const { id } =await params;
+    const { id } = await params;
     await dbConnect();
 
     const risks = await Risk.find({ project: id })
@@ -25,7 +27,7 @@ export const GET = withAuth(async function (req, { params }) {
 
 export const POST = withAuth(async function (req, { params }) {
   try {
-    const { id } =await params;
+    const { id } = await params;
     const body = await req.json();
     await dbConnect();
 
@@ -40,12 +42,47 @@ export const POST = withAuth(async function (req, { params }) {
     await recordAudit(newRisk, req.user, "Create", "Initial risk identification");
 
     // Record audit trail in project
-    const project = await Project.findById(id);
+    const project = await Project.findById(id).populate('members');
     if (project) {
       await recordAudit(project, req.user, "RiskAdded", `Risk identified: ${body.title}`);
+
+      // Generate Notifications for Project Members
+      const memberIds = project.members.map(m => m._id.toString());
+      
+      // Get all Admins/SuperAdmins of the organization too
+      const admins = await User.find({ 
+        organization: req.user.organizationId, 
+        role: { $in: ['Admin', 'SuperAdmin'] } 
+      });
+      const adminIds = admins.map(a => a._id.toString());
+
+      // Combine and unique
+      const recipients = [...new Set([...memberIds, ...adminIds])].filter(uid => uid !== req.user.id);
+
+      const notifications = recipients.map(uid => ({
+        user: uid,
+        project: id,
+        title: 'New Risk Identified',
+        message: `${req.user.name} identified a new risk: ${body.title}`,
+        type: 'Risk',
+        relatedId: newRisk._id
+      }));
+
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+        
+        // Emit real-time notifications to recipients
+        for (const recipientId of recipients) {
+          emitToUser(recipientId, 'notification:new', {
+            title: 'New Risk Identified',
+            message: `${req.user.name} identified a new risk: ${body.title}`
+          });
+        }
+      }
     }
 
     emitToProject(id, 'risk:updated');
+    
     return NextResponse.json(newRisk, { status: 201 });
   } catch (error) {
     console.error("Create risk error:", error);

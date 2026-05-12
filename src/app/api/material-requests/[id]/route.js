@@ -4,16 +4,12 @@ import MaterialRequest from "@/models/MaterialRequest";
 import Material from "@/models/Material";
 import { withAuth } from "@/lib/middleware";
 
-// PATCH: Update request status
+// PATCH: Update request status or content
 export const PATCH = withAuth(async function (req, { params }) {
   try {
     const { id: requestId } = await params;
     await dbConnect();
-    const { status } = await req.json();
-
-    if (!["Pending", "Approved", "Rejected", "Fulfilled"].includes(status)) {
-      return NextResponse.json({ message: "Invalid status" }, { status: 400 });
-    }
+    const { status, items, commonNote } = await req.json();
 
     const materialRequest = await MaterialRequest.findOne({ 
       _id: requestId,
@@ -24,19 +20,44 @@ export const PATCH = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Material request not found" }, { status: 404 });
     }
 
-    // Prevent moving back to pending or modifying already fulfilled/rejected requests if needed,
-    // but for now, we just update the status.
-    const previousStatus = materialRequest.status;
-    materialRequest.status = status;
+    // Handle Status Update
+    if (status) {
+      if (!["Pending", "Approved", "Rejected", "Fulfilled"].includes(status)) {
+        return NextResponse.json({ message: "Invalid status" }, { status: 400 });
+      }
+      materialRequest.status = status;
+    }
 
-    // Update the request status but do not modify actual inventory numbers.
-    // The request acts purely as an approval workflow.
-    materialRequest.status = status;
+    // Handle Content Update (only if Pending)
+    if (items || commonNote !== undefined) {
+      if (materialRequest.status !== "Pending" && !status) {
+        return NextResponse.json({ message: "Can only edit pending requests" }, { status: 400 });
+      }
+
+      if (commonNote !== undefined) materialRequest.commonNote = commonNote;
+
+      if (items && Array.isArray(items)) {
+        const processedItems = [];
+        for (const item of items) {
+          const material = await Material.findOne({ _id: item.materialId });
+          if (material) {
+            processedItems.push({
+              materialId: material._id,
+              quantity: Number(item.quantity),
+              unit: material.unit
+            });
+          }
+        }
+        if (processedItems.length > 0) {
+          materialRequest.items = processedItems;
+        }
+      }
+    }
 
     await materialRequest.save();
 
     return NextResponse.json({
-      message: `Request marked as ${status}`,
+      message: "Material request updated successfully",
       request: materialRequest
     });
   } catch (error) {

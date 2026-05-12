@@ -3,13 +3,13 @@ import dbConnect from "@/lib/db";
 import Material from "@/models/Material";
 import { withAuth } from "@/lib/middleware";
 
-// PATCH: Record stock In/Out
+// PATCH: Update material details or stock
 export const PATCH = withAuth(async function (req, { params }) {
   try {
     const { id } = await params;
     await dbConnect();
     const body = await req.json();
-    const { type, quantity, note } = body;
+    const { type, quantity, note, name, unit } = body;
 
     const material = await Material.findOne({ 
       _id: id, 
@@ -20,28 +20,81 @@ export const PATCH = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Material not found" }, { status: 404 });
     }
 
-    // Update totals
-    if (type === "Received" || type === "Purchase") {
-      material.totalReceived += Number(quantity);
-    } else if (type === "Used") {
-      material.totalConsumed += Number(quantity);
-    }
-    // "Request" doesn't change stock totals until it's "Received"
+    const oldName = material.name;
+    const oldUnit = material.unit;
+    let nameChanged = false;
+    let unitChanged = false;
 
-    // Add log
-    material.logs.push({
-      type,
-      quantity: Number(quantity),
-      note,
-      updatedBy: req.user.id,
-      updatedByName: req.user.name,
-      date: new Date()
-    });
+    // General updates
+    if (name && name !== oldName) {
+      material.name = name;
+      nameChanged = true;
+    }
+    if (unit && unit !== oldUnit) {
+      material.unit = unit;
+      unitChanged = true;
+    }
+
+    // Stock updates if type is provided
+    if (type && quantity) {
+      if (type === "Received" || type === "Purchase" || type === "In") {
+        material.totalReceived += Number(quantity);
+      } else if (type === "Used" || type === "Out") {
+        material.totalConsumed += Number(quantity);
+      }
+      
+      // Add log
+      material.logs.push({
+        type,
+        quantity: Number(quantity),
+        note,
+        updatedBy: req.user.id,
+        updatedByName: req.user.name,
+        date: new Date()
+      });
+    }
 
     await material.save();
+
+    // If name or unit changed, update all related records for consistency
+    if (nameChanged || unitChanged) {
+      const { default: BOQ } = await import("@/models/BOQ");
+      const { default: MaterialUsage } = await import("@/models/MaterialUsage");
+      const { default: MaterialReceipt } = await import("@/models/MaterialReceipt");
+      const { default: MaterialRequest } = await import("@/models/MaterialRequest");
+      const { default: MaterialPurchase } = await import("@/models/MaterialPurchase");
+
+      const projectId = material.project;
+
+      // 1. Update BOQ items if name matches
+      if (nameChanged) {
+        await BOQ.updateMany(
+          { project: projectId, itemDescription: oldName },
+          { $set: { itemDescription: name } }
+        );
+      }
+
+      // 2. Update all usage/receipt/request items with the new unit
+      if (unitChanged) {
+        const updateObj = { "items.$[elem].unit": unit };
+        const arrayFilters = [{ "elem.materialId": id }];
+
+        await Promise.all([
+          MaterialUsage.updateMany({ "items.materialId": id }, { $set: updateObj }, { arrayFilters }),
+          MaterialReceipt.updateMany({ "items.materialId": id }, { $set: updateObj }, { arrayFilters }),
+          MaterialRequest.updateMany({ "items.materialId": id }, { $set: updateObj }, { arrayFilters }),
+          MaterialPurchase.updateMany({ "items.materialId": id }, { $set: updateObj }, { arrayFilters })
+        ]);
+      }
+    }
+
+    const { emitToProject } = await import("@/lib/socket-server");
+    emitToProject(material.project, 'material:updated');
+
     return NextResponse.json(material);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating stock", error: error.message }, { status: 500 });
+    console.error("Material update error:", error);
+    return NextResponse.json({ message: "Error updating material", error: error.message }, { status: 500 });
   }
 });
 

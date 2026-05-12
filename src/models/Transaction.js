@@ -41,6 +41,7 @@ const TransactionSchema = new mongoose.Schema(
     referenceNumber: String, // UTR, Cheque No, Debit Note No
     category: String,        // e.g., RA Bill, Material Advance, Delay Penalty
     description: String,
+    invoiceUrl: String,
     
     // Optional link for auto-generated transactions
     linkedPurchase: { 

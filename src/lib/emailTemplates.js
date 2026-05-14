@@ -362,3 +362,22 @@ export function documentDecisionEmail({ uploaderName, approverName, projectName,
     }
   `);
 }
+
+// ─── 13. Password Reset OTP ───────────────────────────────────────────────────
+export function otpEmail({ name, otp }) {
+  return wrap("Password Reset OTP", `
+    <h2 style="margin:0 0 8px;color:#0F172A;font-size:20px;font-weight:700;">Password Reset Request</h2>
+    <p style="margin:0 0 24px;color:#64748B;font-size:14px;">
+      Hi ${name}, we received a request to reset your password. Here is your One-Time Password (OTP).
+    </p>
+
+    <div style="background:#F8FAFF;border:1px solid #E2E8F0;border-radius:12px;padding:32px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;">Your OTP Code</p>
+      <div style="font-size:32px;font-weight:800;color:#1E40AF;letter-spacing:4px;">${otp}</div>
+    </div>
+
+    <p style="color:#92400E;background:#FEF3C7;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">
+      <strong>Note:</strong> This OTP is valid for 10 minutes. If you did not request a password reset, please ignore this email.
+    </p>
+  `);
+}

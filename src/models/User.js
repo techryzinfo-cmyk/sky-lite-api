@@ -57,6 +57,12 @@ const UserSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
+    resetPasswordOtp: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
     auditTrail: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

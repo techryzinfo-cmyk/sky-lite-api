@@ -27,6 +27,8 @@ export const GET = withPermission(async function (req, { params }) {
     } else if (period === "month") {
       const monthAgo = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       dateFilter = { date: { $gte: monthAgo, $lte: today } };
+    } else if (period === "all") {
+      // no date filter
     }
 
     const query = { project: id, organization: req.user.organizationId, ...dateFilter };

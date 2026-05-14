@@ -29,7 +29,7 @@ const WorkProgressSchema = new mongoose.Schema(
     progressPercent: {
       type: Number,
       required: true,
-      min: [1, "Progress must be at least 1%"],
+      min: [0, "Progress cannot be negative"],
       max: [100, "Progress cannot exceed 100%"],
     },
     photos: [{ type: String }],

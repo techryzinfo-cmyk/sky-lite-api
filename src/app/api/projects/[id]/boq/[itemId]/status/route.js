@@ -94,7 +94,8 @@ export const PATCH = withAuth(async function (req, { params }) {
       await project.save();
     }
 
-    // Notify the BOQ item creator of the decision
+    // Notify the BOQ item creator of the decision (disabled)
+    /*
     if (item.createdBy && ["Approved", "Rejected"].includes(status)) {
       const creator = await User.findById(item.createdBy).select("name email");
       if (creator?.email) {
@@ -113,6 +114,7 @@ export const PATCH = withAuth(async function (req, { params }) {
         });
       }
     }
+    */
 
     emitToProject(id, 'boq:updated');
 

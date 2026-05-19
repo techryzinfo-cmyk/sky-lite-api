@@ -14,6 +14,7 @@ import { emitToProject } from "@/lib/socket-server";
 export const GET = withAuth(async function (req, { params }) {
   try {
     const { id } = await params;
+    console.log("asdf");
     await dbConnect();
 
     const items = await BOQ.find({ project: id, isLatest: { $ne: false } }).sort({ createdAt: 1 });

@@ -64,7 +64,7 @@ export const PATCH = withAuth(async function (req, { params }) {
       await project.save();
     }
 
-    emitToProject(id, 'boq:updated');
+    // emitToProject(id, 'boq:updated');
     return NextResponse.json(newBOQItem);
   } catch (error) {
     console.error("BOQ update error:", error);
@@ -78,10 +78,12 @@ export const PATCH = withAuth(async function (req, { params }) {
 export const DELETE = withAuth(async function (req, { params }) {
   try {
     const { id, itemId } = await params;
+    console.log("[DELETE BOQ Item] Params received by Next.js:", { id, itemId });
     await dbConnect();
 
     const item = await BOQ.findOneAndDelete({ _id: itemId, project: id });
     if (!item) {
+      console.log("[DELETE BOQ Item] Item not found in DB for query:", { _id: itemId, project: id });
       return NextResponse.json({ message: "BOQ item not found" }, { status: 404 });
     }
 

@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      match: [/^[0-9]{10}$/, "Please provide a valid 10-digit phone number"],
+      match: [/^\+?[0-9]{10,15}$/, "Please provide a valid phone number with country code"],
       trim: true,
     },
     role: {

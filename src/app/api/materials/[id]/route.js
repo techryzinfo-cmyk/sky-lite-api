@@ -40,6 +40,12 @@ export const PATCH = withAuth(async function (req, { params }) {
       if (type === "Received" || type === "Purchase" || type === "In") {
         material.totalReceived += Number(quantity);
       } else if (type === "Used" || type === "Out") {
+        const available = material.totalReceived - material.totalConsumed;
+        if (Number(quantity) > available) {
+          return NextResponse.json({ 
+            message: `Cannot use/remove ${quantity} ${material.unit}. Only ${available} available.` 
+          }, { status: 400 });
+        }
         material.totalConsumed += Number(quantity);
       }
       

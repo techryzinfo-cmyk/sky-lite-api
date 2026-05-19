@@ -46,6 +46,13 @@ export const POST = withAuth(async function (req, { params }) {
       });
 
       if (material) {
+        const availableStock = material.totalReceived - material.totalConsumed;
+        if (Number(item.quantity) > availableStock) {
+          return NextResponse.json({ 
+            message: `Cannot use ${item.quantity} ${material.unit} of ${material.name}. Only ${availableStock} ${material.unit} available.` 
+          }, { status: 400 });
+        }
+
         processedItems.push({
           materialId: material._id,
           quantity: item.quantity,

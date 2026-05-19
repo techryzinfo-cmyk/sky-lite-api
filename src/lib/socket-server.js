@@ -5,7 +5,7 @@ export async function emitToProject(projectId, event, payload = {}) {
   try {
     const cleanPayload = payload && typeof payload.toJSON === 'function' ? payload.toJSON() : payload;
     
-    await fetch(`${SOCKET_SERVER_URL}/emit`, {
+    const response = await fetch(`${SOCKET_SERVER_URL}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -15,7 +15,13 @@ export async function emitToProject(projectId, event, payload = {}) {
         payload: { projectId, ...cleanPayload },
       }),
     });
-  } catch {
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Socket emit failed with status ${response.status}: ${errorData.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error(`[Socket Error] Failed to emit '${event}' to project:${projectId}:`, error.message);
   }
 }
 
@@ -23,7 +29,7 @@ export async function emitToOrg(orgId, event, payload = {}) {
   try {
     const cleanPayload = payload && typeof payload.toJSON === 'function' ? payload.toJSON() : payload;
 
-    await fetch(`${SOCKET_SERVER_URL}/emit`, {
+    const response = await fetch(`${SOCKET_SERVER_URL}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -33,7 +39,13 @@ export async function emitToOrg(orgId, event, payload = {}) {
         payload: { orgId, ...cleanPayload },
       }),
     });
-  } catch {
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Socket emit failed with status ${response.status}: ${errorData.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error(`[Socket Error] Failed to emit '${event}' to org:${orgId}:`, error.message);
   }
 }
 
@@ -41,7 +53,7 @@ export async function emitToUser(userId, event, payload = {}) {
   try {
     const cleanPayload = payload && typeof payload.toJSON === 'function' ? payload.toJSON() : payload;
 
-    await fetch(`${SOCKET_SERVER_URL}/emit`, {
+    const response = await fetch(`${SOCKET_SERVER_URL}/emit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -51,6 +63,12 @@ export async function emitToUser(userId, event, payload = {}) {
         payload: { userId, ...cleanPayload },
       }),
     });
-  } catch {
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Socket emit failed with status ${response.status}: ${errorData.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error(`[Socket Error] Failed to emit '${event}' to user:${userId}:`, error.message);
   }
 }

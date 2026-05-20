@@ -161,8 +161,13 @@ export const PATCH = withAuth(async function (req, { params }) {
       } else if (type === "Used" || type === "Out") {
         const available = material.totalReceived - material.totalConsumed;
         if (Number(quantity) > available) {
+<<<<<<< HEAD
+          return NextResponse.json({ 
+            message: `Cannot use/remove ${quantity} ${material.unit}. Only ${available} available.` 
+=======
           return NextResponse.json({
             message: `Cannot use/remove ${quantity} ${material.unit}. Only ${available} available.`
+>>>>>>> 00836709b7f087935d5a895d0d96ff8945d9a3be
           }, { status: 400 });
         }
         material.totalConsumed += Number(quantity);

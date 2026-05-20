@@ -3,13 +3,14 @@ import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
+
 import User from "@/models/User";
 // GET a single project
 export const GET = withAuth(async function (req, { params }) {
   try {
     const { id } = await params;
     await dbConnect();
-    console.log("id",id)
+    console.log("id", id)
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId })
       .populate({ path: "createdBy", select: "name email role", populate: { path: "role" } })
       .populate({ path: "members", select: "name email role", populate: { path: "role" } })

@@ -4,7 +4,8 @@ import User from "@/models/User";
 import { withAuth, withRole } from "@/lib/middleware";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/emailTemplates";
-
+import Role from "@/models/Role";
+import Project from "@/models/Project";
 /**
  * GET: Fetch all users (for member registry)
  */

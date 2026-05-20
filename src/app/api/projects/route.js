@@ -9,7 +9,17 @@ import Organization from "@/models/Organization";
 export const GET = withAuth(async function (req) {
   try {
     await dbConnect();
-    const projects = await Project.find({ organization: req.user.organizationId })
+    
+    const userDoc = await User.findById(req.user.id).populate("role");
+    const isAdmin = userDoc?.role?.name === "Admin" || req.user.role === "Admin";
+    
+    let query = { organization: req.user.organizationId };
+    
+    if (!isAdmin) {
+      query._id = { $in: userDoc?.projects || [] };
+    }
+
+    const projects = await Project.find(query)
       .populate("createdBy", "name email")
       .populate("members", "name email")
       .populate("siteSurveyor", "name email")

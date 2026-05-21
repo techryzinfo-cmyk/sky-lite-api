@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import Role from "@/models/Role";
 import { verifyRefreshToken, generateAccessToken } from "@/lib/auth";
 
 export async function POST(req) {

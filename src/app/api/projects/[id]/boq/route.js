@@ -17,8 +17,34 @@ export const GET = withAuth(async function (req, { params }) {
     console.log("asdf");
     await dbConnect();
 
-    const items = await BOQ.find({ project: id, isLatest: { $ne: false } }).sort({ createdAt: 1 });
-    return NextResponse.json(items);
+    const items = await BOQ.find({ project: id, isLatest: { $ne: false } }).sort({ createdAt: 1 }).lean();
+
+    const historyIds = items.filter(item => item.version > 1 && item.status !== "Approved").map(i => i.historyId);
+    let approvedCosts = {};
+    
+    if (historyIds.length > 0) {
+      const approvedItems = await BOQ.find({
+        project: id,
+        historyId: { $in: historyIds },
+        status: "Approved"
+      }).sort({ version: -1 }).lean();
+      
+      for (const item of approvedItems) {
+        if (approvedCosts[item.historyId] === undefined) {
+          approvedCosts[item.historyId] = item.totalCost;
+        }
+      }
+    }
+    
+    const finalItems = items.map(item => {
+      let effectiveCost = item.totalCost;
+      if (item.version > 1 && item.status !== "Approved") {
+        effectiveCost = approvedCosts[item.historyId] !== undefined ? approvedCosts[item.historyId] : item.totalCost;
+      }
+      return { ...item, effectiveTotalCost: effectiveCost };
+    });
+
+    return NextResponse.json(finalItems);
   } catch (error) {
     return NextResponse.json({ message: "Error fetching BOQ", error: error.message }, { status: 500 });
   }

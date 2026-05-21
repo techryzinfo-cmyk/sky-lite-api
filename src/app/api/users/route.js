@@ -106,7 +106,7 @@ export const POST = withRole(async function (req) {
     const plainPassword = password || "welcome123";
     sendEmail({
       to: email,
-      subject: "Welcome to Pratham — Your Login Credentials",
+      subject: "Welcome to Skystruct — Your Login Credentials",
       html: welcomeEmail({
         name,
         email,

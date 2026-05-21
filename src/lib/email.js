@@ -32,7 +32,7 @@ export async function sendEmail({ to, subject, html }) {
   try {
     const transporter = getTransporter();
     await transporter.sendMail({
-      from: `"${process.env.SMTP_FROM_NAME || "Pratham App"}" <${process.env.SMTP_USER}>`,
+      from: `"${process.env.SMTP_FROM_NAME || "Skystruct App"}" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,

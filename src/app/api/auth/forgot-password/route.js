@@ -33,7 +33,7 @@ export async function POST(req) {
     // 4. Send email
     await sendEmail({
       to: user.email,
-      subject: "Your Password Reset OTP - Pratham App",
+      subject: "Your Password Reset OTP - Skystruct App",
       html: otpEmail({ name: user.name, otp }),
     });
 

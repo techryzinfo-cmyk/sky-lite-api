@@ -3,8 +3,10 @@ import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
-
+import Role from "@/models/Role";
 import User from "@/models/User";
+import SiteSurvey from "@/models/SiteSurvey";
+import Snag from "@/models/Snag";
 // GET a single project
 export const GET = withAuth(async function (req, { params }) {
   try {

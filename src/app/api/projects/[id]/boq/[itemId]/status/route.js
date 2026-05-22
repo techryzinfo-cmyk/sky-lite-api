@@ -17,7 +17,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     const { id, itemId } = await params;
     await dbConnect();
 
-    const { status, updateBudget, budgetReason } = await req.json();
+    const { status, updateBudget, budgetReason, rejectionReason } = await req.json();
 
     if (!["Approved", "Rejected", "Pending", "Draft"].includes(status)) {
       return NextResponse.json({ message: "Invalid status" }, { status: 400 });
@@ -35,6 +35,13 @@ export const PATCH = withAuth(async function (req, { params }) {
     item.approvedBy = req.user.id;
     item.approvedByName = req.user.name || "Admin";
     item.approvedAt = new Date();
+
+    // Store rejection reason if provided
+    if (status === "Rejected" && rejectionReason) {
+      item.rejectionReason = rejectionReason;
+    } else if (status !== "Rejected") {
+      item.rejectionReason = undefined;
+    }
     
     await item.save();
 
@@ -47,7 +54,7 @@ export const PATCH = withAuth(async function (req, { params }) {
         userName: req.user.name || "User",
         userRole: req.user.role === "Admin" ? "Admin" : (req.user.role?.name || "Member"),
         action: "Update",
-        details: `${status} BOQ item: ${item.itemNumber || item.itemDescription} (v${item.version})`,
+        details: `${status} BOQ item: ${item.itemNumber || item.itemDescription} (v${item.version})${status === 'Rejected' && rejectionReason ? ` — Reason: ${rejectionReason}` : ''}`,
       });
 
       // 2. Budget Impact Logic

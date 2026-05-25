@@ -14,11 +14,29 @@ import { emitToProject } from "@/lib/socket-server";
 export const GET = withAuth(async function (req, { params }) {
   try {
     const { id } = await params;
-    console.log("asdf");
     await dbConnect();
 
     const items = await BOQ.find({ project: id, isLatest: { $ne: false } }).sort({ createdAt: 1 });
-    return NextResponse.json(items);
+    
+    // Enrich items with lastApprovedCost if their current status is not Approved
+    const enrichedItems = await Promise.all(items.map(async (item) => {
+      let lastApprovedCost = null;
+      if (item.status !== "Approved") {
+        const prevApproved = await BOQ.findOne({
+          historyId: item.historyId || item._id,
+          status: "Approved"
+        }).sort({ version: -1 });
+        if (prevApproved) {
+          lastApprovedCost = prevApproved.totalCost;
+        }
+      }
+      return {
+        ...item.toObject(),
+        lastApprovedCost
+      };
+    }));
+
+    return NextResponse.json(enrichedItems);
   } catch (error) {
     return NextResponse.json({ message: "Error fetching BOQ", error: error.message }, { status: 500 });
   }

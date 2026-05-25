@@ -21,7 +21,13 @@ export const POST = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
-    // 2. Create Survey
+    // 2. Check if survey already exists to prevent duplicate submissions
+    const existingSurvey = await SiteSurvey.findOne({ project: projectId, organization: req.user.organizationId });
+    if (existingSurvey) {
+      return NextResponse.json({ message: "Site survey has already been submitted for this project" }, { status: 400 });
+    }
+
+    // 3. Create Survey
     const newSurvey = new SiteSurvey({
       ...surveyPayload,
       project: project._id,

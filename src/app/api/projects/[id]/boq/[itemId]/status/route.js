@@ -17,7 +17,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     const { id, itemId } = await params;
     await dbConnect();
 
-    const { status, updateBudget, budgetReason } = await req.json();
+    const { status, updateBudget, budgetReason, rejectionReason } = await req.json();
 
     if (!["Approved", "Rejected", "Pending", "Draft"].includes(status)) {
       return NextResponse.json({ message: "Invalid status" }, { status: 400 });
@@ -35,6 +35,10 @@ export const PATCH = withAuth(async function (req, { params }) {
     item.approvedBy = req.user.id;
     item.approvedByName = req.user.name || "Admin";
     item.approvedAt = new Date();
+    
+    if (status === "Rejected") {
+      item.rejectionReason = rejectionReason || "";
+    }
     
     await item.save();
 

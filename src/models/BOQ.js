@@ -30,6 +30,7 @@ const BOQItemSchema = new mongoose.Schema({
   approvedAt: { type: Date },
   requestedApprover: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   requestedApproverName: { type: String },
+  rejectionReason: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 

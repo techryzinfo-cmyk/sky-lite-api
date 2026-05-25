@@ -43,9 +43,21 @@ export const GET = withAuth(async function (req) {
     );
     const pendingSet = new Set(pendingFolders.map((f) => f.project.toString()));
 
+    // Fetch site surveys for these projects to determine survey status
+    const SiteSurvey = require("@/models/SiteSurvey").default || require("@/models/SiteSurvey");
+    const surveys = await SiteSurvey.find({ project: { $in: projectIds } }, { project: 1, status: 1, rejectionReason: 1 });
+    const surveyStatusMap = {};
+    const surveyRejectMap = {};
+    surveys.forEach(s => {
+      surveyStatusMap[s.project.toString()] = s.status;
+      surveyRejectMap[s.project.toString()] = s.rejectionReason;
+    });
+
     const result = projects.map((p) => ({
       ...p.toObject(),
       hasPendingPlans: pendingSet.has(p._id.toString()),
+      surveyStatus: surveyStatusMap[p._id.toString()] || null,
+      surveyRejectionReason: surveyRejectMap[p._id.toString()] || null,
     }));
 
     return NextResponse.json(result);
@@ -98,6 +110,11 @@ export const POST = withAuth(async function (req) {
 
     const project = new Project(projectData);
 
+    const creatorUserId = req.user.id || createdBy;
+    if (creatorUserId && !project.members.includes(creatorUserId)) {
+      project.members.push(creatorUserId);
+    }
+
     // Add audit entry
     project.auditTrail.push({
       user: req.user.id || createdBy,
@@ -108,6 +125,13 @@ export const POST = withAuth(async function (req) {
     });
 
     await project.save();
+
+    // Automatically add the project to the creator's assigned projects list
+    if (creatorUserId) {
+      await User.findByIdAndUpdate(creatorUserId, {
+        $addToSet: { projects: project._id }
+      });
+    }
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {

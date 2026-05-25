@@ -32,17 +32,15 @@ export const POST = withAuth(async function (req, { params }) {
     
     await newSurvey.save();
 
-    // 3. Upgrade Project Status and log
-    project.status = "Planning"; // Automatically advance project once survey is submitted!
-    
-    // Note: Budget history will ONLY be updated when an Admin formally Approves the survey in the PATCH route.
+    // Note: Project status remains 'Site Survey' until the Admin approves it.
+    // Budget history will ONLY be updated when an Admin formally Approves the survey in the PATCH route.
 
     project.auditTrail.push({
       user: req.user.id,
       userName: req.user.name || "Surveyor",
       userRole: req.user.role || "Member",
       action: "Update",
-      details: "Site Survey submitted successfully. Project advanced to Planning stage.",
+      details: "Site Survey submitted successfully and is pending approval.",
     });
 
     await project.save();
@@ -118,6 +116,7 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     if (action === "Approve") {
       survey.status = "Approved";
+      project.status = "Planning"; // Advance project to Planning upon approval
       project.auditTrail.push({
         user: req.user.id,
         userName: req.user.name || "Admin",
@@ -153,7 +152,7 @@ export const PATCH = withAuth(async function (req, { params }) {
       // If it was "Needs Attention", move it back to "Submitted"
       if (survey.status === "Needs Attention") {
         survey.status = "Submitted";
-        project.status = "Planning"; // Advance project again
+        // Project status remains 'Site Survey' until approved
       }
 
       project.auditTrail.push({

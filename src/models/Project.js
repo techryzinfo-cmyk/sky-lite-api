@@ -30,7 +30,7 @@ const ProjectSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Completed", "On Hold", "Cancelled"],
+      enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Completed", "Pending Handover", "Handover Rejected", "Handover Completed", "On Hold", "Cancelled"],
       default: "Initialized",
       index: true,
     },
@@ -79,6 +79,14 @@ const ProjectSchema = new mongoose.Schema(
     snaggedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    handoverApprover: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    handoverRejectionReason: {
+      type: String,
+      trim: true,
     },
     documents: [
       {

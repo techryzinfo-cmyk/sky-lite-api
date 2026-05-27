@@ -3,19 +3,22 @@ import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
-import User from "@/models/User";
 import Role from "@/models/Role";
+import User from "@/models/User";
+import SiteSurvey from "@/models/SiteSurvey";
+import Snag from "@/models/Snag";
 // GET a single project
 export const GET = withAuth(async function (req, { params }) {
   try {
     const { id } = await params;
     await dbConnect();
-    console.log("id",id)
+    console.log("id", id)
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId })
       .populate({ path: "createdBy", select: "name email role", populate: { path: "role" } })
       .populate({ path: "members", select: "name email role", populate: { path: "role" } })
       .populate({ path: "siteSurveyor", select: "name email role", populate: { path: "role" } })
-      .populate({ path: "snaggedBy", select: "name email role", populate: { path: "role" } });
+      .populate({ path: "snaggedBy", select: "name email role", populate: { path: "role" } })
+      .populate({ path: "closureRequestedFrom", select: "name email role", populate: { path: "role" } });
 
     if (!project) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });

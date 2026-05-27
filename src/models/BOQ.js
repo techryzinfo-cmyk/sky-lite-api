@@ -28,6 +28,7 @@ const BOQItemSchema = new mongoose.Schema({
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   approvedByName: { type: String },
   approvedAt: { type: Date },
+  rejectionReason: { type: String },
   requestedApprover: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   requestedApproverName: { type: String },
   rejectionReason: { type: String },

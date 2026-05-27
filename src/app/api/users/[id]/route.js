@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { withRole } from "@/lib/middleware";
+import Role from "@/models/Role";
+import Project from "@/models/Project";
 
 /**
  * PATCH: Update team member

@@ -16,27 +16,34 @@ export const GET = withAuth(async function (req, { params }) {
     const { id } = await params;
     await dbConnect();
 
-    const items = await BOQ.find({ project: id, isLatest: { $ne: false } }).sort({ createdAt: 1 });
+    const items = await BOQ.find({ project: id, isLatest: { $ne: false } }).sort({ createdAt: 1 }).lean();
+
+    const historyIds = items.filter(item => item.version > 1 && item.status !== "Approved").map(i => i.historyId);
+    let approvedCosts = {};
     
-    // Enrich items with lastApprovedCost if their current status is not Approved
-    const enrichedItems = await Promise.all(items.map(async (item) => {
-      let lastApprovedCost = null;
-      if (item.status !== "Approved") {
-        const prevApproved = await BOQ.findOne({
-          historyId: item.historyId || item._id,
-          status: "Approved"
-        }).sort({ version: -1 });
-        if (prevApproved) {
-          lastApprovedCost = prevApproved.totalCost;
+    if (historyIds.length > 0) {
+      const approvedItems = await BOQ.find({
+        project: id,
+        historyId: { $in: historyIds },
+        status: "Approved"
+      }).sort({ version: -1 }).lean();
+      
+      for (const item of approvedItems) {
+        if (approvedCosts[item.historyId] === undefined) {
+          approvedCosts[item.historyId] = item.totalCost;
         }
       }
-      return {
-        ...item.toObject(),
-        lastApprovedCost
-      };
-    }));
+    }
+    
+    const finalItems = items.map(item => {
+      let effectiveCost = item.totalCost;
+      if (item.version > 1 && item.status !== "Approved") {
+        effectiveCost = approvedCosts[item.historyId] !== undefined ? approvedCosts[item.historyId] : item.totalCost;
+      }
+      return { ...item, effectiveTotalCost: effectiveCost };
+    });
 
-    return NextResponse.json(enrichedItems);
+    return NextResponse.json(finalItems);
   } catch (error) {
     return NextResponse.json({ message: "Error fetching BOQ", error: error.message }, { status: 500 });
   }

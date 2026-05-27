@@ -4,7 +4,8 @@ import User from "@/models/User";
 import { withAuth, withRole } from "@/lib/middleware";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/emailTemplates";
-
+import Role from "@/models/Role";
+import Project from "@/models/Project";
 /**
  * GET: Fetch all users (for member registry)
  */
@@ -105,7 +106,7 @@ export const POST = withRole(async function (req) {
     const plainPassword = password || "welcome123";
     sendEmail({
       to: email,
-      subject: "Welcome to Pratham — Your Login Credentials",
+      subject: "Welcome to Skystruct — Your Login Credentials",
       html: welcomeEmail({
         name,
         email,

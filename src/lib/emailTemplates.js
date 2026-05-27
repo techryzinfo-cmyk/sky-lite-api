@@ -15,7 +15,7 @@ function wrap(title, bodyHtml) {
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#1E40AF 0%,#3B82F6 100%);padding:32px 40px;">
-            <h1 style="margin:0;color:#FFFFFF;font-size:24px;font-weight:700;letter-spacing:-0.5px;">Pratham</h1>
+            <h1 style="margin:0;color:#FFFFFF;font-size:24px;font-weight:700;letter-spacing:-0.5px;">Skystruct</h1>
             <p style="margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:13px;">Project Management Platform</p>
           </td>
         </tr>
@@ -31,7 +31,7 @@ function wrap(title, bodyHtml) {
         <tr>
           <td style="background:#F8FAFF;padding:20px 40px;border-top:1px solid #E2E8F0;">
             <p style="margin:0;color:#94A3B8;font-size:12px;text-align:center;">
-              This is an automated notification from Pratham App. Please do not reply to this email.
+              This is an automated notification from Skystruct App. Please do not reply to this email.
             </p>
           </td>
         </tr>
@@ -73,10 +73,10 @@ export function welcomeEmail({ name, email, password, role, projects = [] }) {
     ? `<ul style="margin:0;padding-left:18px;color:#475569;font-size:14px;">${projects.map(p => `<li>${p}</li>`).join("")}</ul>`
     : `<p style="color:#94A3B8;font-size:13px;margin:0;">No projects assigned yet.</p>`;
 
-  return wrap("Welcome to Pratham", `
+  return wrap("Welcome to Skystruct", `
     <h2 style="margin:0 0 8px;color:#0F172A;font-size:22px;font-weight:700;">Welcome aboard, ${name}!</h2>
     <p style="margin:0 0 28px;color:#64748B;font-size:15px;line-height:1.6;">
-      Your account has been created on <strong>Pratham</strong>. Below are your login credentials. Please log in and change your password as soon as possible.
+      Your account has been created on <strong>Skystruct</strong>. Below are your login credentials. Please log in and change your password as soon as possible.
     </p>
 
     <div style="background:#F8FAFF;border:1px solid #E2E8F0;border-radius:12px;padding:24px;margin-bottom:28px;">
@@ -145,7 +145,7 @@ export function budgetRequestEmail({ approverName, requesterName, projectName, a
     </div>
 
     <p style="color:#92400E;background:#FEF3C7;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">
-      Please open the Pratham app to <strong>approve or reject</strong> this budget request.
+      Please open the Skystruct app to <strong>approve or reject</strong> this budget request.
     </p>
   `);
 }
@@ -192,7 +192,7 @@ export function surveySumbittedEmail({ adminName, surveyorName, projectName }) {
     </div>
 
     <p style="color:#1E40AF;background:#DBEAFE;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">
-      Open the Pratham app to review the survey findings and approve or request changes.
+      Open the Skystruct app to review the survey findings and approve or request changes.
     </p>
   `);
 }
@@ -219,7 +219,7 @@ export function surveyDecisionEmail({ surveyorName, adminName, projectName, acti
 
     ${isApproved
       ? `<p style="color:#065F46;background:#D1FAE5;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">Great work! The project has been advanced to the <strong>Planning</strong> stage.</p>`
-      : `<p style="color:#991B1B;background:#FEE2E2;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">Please review the feedback and resubmit the survey via the Pratham app.</p>`
+      : `<p style="color:#991B1B;background:#FEE2E2;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">Please review the feedback and resubmit the survey via the Skystruct lite app.</p>`
     }
   `);
 }
@@ -244,7 +244,7 @@ export function issueAssignedEmail({ assigneeName, reporterName, projectName, is
     </div>
 
     <p style="color:#1E40AF;background:#DBEAFE;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">
-      Open the Pratham app to view the full issue details and begin resolution.
+      Open the Skystruct lite app to view the full issue details and begin resolution.
     </p>
   `);
 }
@@ -289,7 +289,7 @@ export function snagAssignedEmail({ assigneeName, reporterName, projectName, sna
     </div>
 
     <p style="color:#1E40AF;background:#DBEAFE;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">
-      Please open the Pratham app to view photos and details, then begin rectification.
+      Please open the Skystruct lite app to view photos and details, then begin rectification.
     </p>
   `);
 }
@@ -332,7 +332,7 @@ export function documentUploadedEmail({ approverName, uploaderName, projectName,
     </div>
 
     <p style="color:#1E40AF;background:#DBEAFE;border-radius:10px;padding:14px 18px;margin:0;font-size:14px;">
-      Open the Pratham app to review and approve or reject this document.
+      Open the Skystruct lite app to review and approve or reject this document.
     </p>
   `);
 }

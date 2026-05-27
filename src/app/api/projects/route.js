@@ -4,12 +4,23 @@ import Project from "@/models/Project";
 import PlanFolder from "@/models/PlanFolder";
 import { withAuth } from "@/lib/middleware";
 import User from "@/models/User";
+import Role from "@/models/Role";
 import TemplateCategory from "@/models/TemplateCategory";
 import Organization from "@/models/Organization";
 export const GET = withAuth(async function (req) {
   try {
     await dbConnect();
-    const projects = await Project.find({ organization: req.user.organizationId })
+    
+    const userDoc = await User.findById(req.user.id).populate("role");
+    const isAdmin = userDoc?.role?.name === "Admin" || req.user.role === "Admin";
+    
+    let query = { organization: req.user.organizationId };
+    
+    if (!isAdmin) {
+      query._id = { $in: userDoc?.projects || [] };
+    }
+
+    const projects = await Project.find(query)
       .populate("createdBy", "name email")
       .populate("members", "name email")
       .populate("siteSurveyor", "name email")
@@ -40,7 +51,6 @@ export const GET = withAuth(async function (req) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("GET /api/projects error:", error);
-    require('fs').writeFileSync('error_log.txt', error.stack || error.message);
     return NextResponse.json({ message: "Error fetching projects", error: error.message, stack: error.stack }, { status: 500 });
   }
 });

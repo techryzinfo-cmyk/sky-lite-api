@@ -1,5 +1,5 @@
 const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL || 'http://localhost:3001';
-const EMIT_SECRET = process.env.SOCKET_EMIT_SECRET || 'pratham-internal-secret';
+const EMIT_SECRET = process.env.SOCKET_EMIT_SECRET || 'Skystruct-internal-secret';
 
 export async function emitToProject(projectId, event, payload = {}) {
   try {

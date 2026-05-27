@@ -70,12 +70,13 @@ export const GET = withAuth(async function (req) {
 export const POST = withAuth(async function (req) {
   try {
     await dbConnect();
-    const { name, description, category, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
+    const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
 
     const projectData = {
       name,
       description,
       category,
+      projectType: projectType || "Construction",
       clientName,
       clientEmail,
       clientPhone,

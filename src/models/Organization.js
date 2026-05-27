@@ -12,6 +12,11 @@ const OrganizationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    subscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -24,4 +29,5 @@ const OrganizationSchema = new mongoose.Schema(
   }
 );
 
+delete mongoose.models.Organization;
 export default mongoose.models.Organization || mongoose.model("Organization", OrganizationSchema);

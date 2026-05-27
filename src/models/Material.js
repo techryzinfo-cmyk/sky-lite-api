@@ -24,6 +24,16 @@ const MaterialSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    room: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Room",
+      default: null,
+      index: true,
+    },
+    // Interior finish details (optional — populated for Interior projects)
+    finish:    { type: String, trim: true },
+    colorCode: { type: String, trim: true },
+    supplier:  { type: String, trim: true },
     totalReceived: {
       type: Number,
       default: 0,
@@ -75,5 +85,5 @@ MaterialSchema.virtual("balance").get(function () {
 // Set virtuals to true for toJSON and toObject
 MaterialSchema.set("toJSON", { virtuals: true });
 MaterialSchema.set("toObject", { virtuals: true });
-delete mongoose.models.Material
+delete mongoose.models.Material;
 export default mongoose.models.Material || mongoose.model("Material", MaterialSchema);

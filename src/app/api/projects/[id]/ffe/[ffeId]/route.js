@@ -1,0 +1,50 @@
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import FFEItem from "@/models/FFEItem";
+import { withSubscription } from "@/lib/middleware";
+
+// PATCH /api/projects/[id]/ffe/[ffeId]
+export const PATCH = withSubscription(async function (req, { params }) {
+  try {
+    await dbConnect();
+    const { ffeId } = await params;
+    const updates = await req.json();
+
+    const item = await FFEItem.findById(ffeId);
+    if (!item) {
+      return NextResponse.json({ message: "FFE item not found" }, { status: 404 });
+    }
+
+    const allowed = [
+      "name", "category", "description", "quantity", "unit", "unitCost",
+      "finish", "colorCode", "dimensions", "brand", "modelNo", "supplier",
+      "status", "orderedDate", "expectedDelivery", "actualDelivery",
+      "installedDate", "images", "notes", "room",
+    ];
+    allowed.forEach(k => { if (updates[k] !== undefined) item[k] = updates[k]; });
+
+    // pre("save") hook fires here and recomputes totalCost
+    await item.save();
+
+    return NextResponse.json(item);
+  } catch (error) {
+    return NextResponse.json({ message: "Error updating FFE item", error: error.message }, { status: 500 });
+  }
+}, "interior");
+
+// DELETE /api/projects/[id]/ffe/[ffeId]
+export const DELETE = withSubscription(async function (req, { params }) {
+  try {
+    await dbConnect();
+    const { ffeId } = await params;
+
+    const item = await FFEItem.findByIdAndDelete(ffeId);
+    if (!item) {
+      return NextResponse.json({ message: "FFE item not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "FFE item deleted" });
+  } catch (error) {
+    return NextResponse.json({ message: "Error deleting FFE item", error: error.message }, { status: 500 });
+  }
+}, "interior");

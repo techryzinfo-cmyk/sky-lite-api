@@ -4,9 +4,9 @@ import mongoose from "mongoose";
 export const PLAN_DEFAULTS = {
   Silver: {
     maxProjects: 10,
-    maxUsers: 20,
+    maxUsers: 10,
     storageGB: 5,
-    features: ["basic_boq", "milestones", "materials", "issues", "risks", "documents"],
+    features: ["basic_boq", "milestones", "materials", "issues", "risks", "documents", "custom_roles"],
   },
   Gold: {
     maxProjects: 50,
@@ -63,7 +63,7 @@ const SubscriptionSchema = new mongoose.Schema(
     // Computed effective limits — baseline from plan + any SA overrides
     limits: {
       maxProjects: { type: Number, default: 10 },
-      maxUsers:    { type: Number, default: 20 },
+      maxUsers:    { type: Number, default: 10 },
       storageGB:   { type: Number, default: 5 },
       features:    { type: [String], default: () => [...PLAN_DEFAULTS.Silver.features] },
     },

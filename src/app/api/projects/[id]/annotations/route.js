@@ -28,7 +28,7 @@ async function postHandler(req, { params }) {
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   const body = await req.json();
-  const { document: documentId, documentName, text, page, position, color } = body;
+  const { document: documentId, documentName, text, page, position, color, imageUri, videoUri, voiceNoteUri } = body;
 
   if (!documentId || !text?.trim()) {
     return NextResponse.json({ error: "document and text are required" }, { status: 400 });
@@ -43,6 +43,9 @@ async function postHandler(req, { params }) {
     page: page || 1,
     position: position || { x: 0, y: 0 },
     color: color || "#FBBF24",
+    imageUri: imageUri || undefined,
+    videoUri: videoUri || undefined,
+    voiceNoteUri: voiceNoteUri || undefined,
     createdBy: req.user.id,
     createdByName: req.user.name || "",
   });

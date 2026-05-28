@@ -13,11 +13,14 @@ export const GET = withAuth(async function (req) {
     
     const userDoc = await User.findById(req.user.id).populate("role");
     const isAdmin = userDoc?.role?.name === "Admin" || req.user.role === "Admin";
-    
+
     let query = { organization: req.user.organizationId };
-    
+
     if (!isAdmin) {
-      query._id = { $in: userDoc?.projects || [] };
+      query.$or = [
+        { _id: { $in: userDoc?.projects || [] } },
+        { members: userDoc._id },
+      ];
     }
 
     const projects = await Project.find(query)

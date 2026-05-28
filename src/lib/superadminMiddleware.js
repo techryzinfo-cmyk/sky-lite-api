@@ -9,8 +9,17 @@ import { verifyAccessToken } from "./auth";
 export const withSuperAdmin = (handler) => {
   return async (req, ...args) => {
     try {
+      // Cookie-based (web) — try first
       const cookieStore = await cookies();
-      const token = cookieStore.get("sa_token")?.value;
+      let token = cookieStore.get("sa_token")?.value;
+
+      // Bearer token fallback for React Native clients
+      if (!token) {
+        const authHeader = req.headers.get("authorization");
+        if (authHeader?.startsWith("Bearer ")) {
+          token = authHeader.split(" ")[1];
+        }
+      }
 
       if (!token) {
         return NextResponse.json({ message: "Unauthorized: No session" }, { status: 401 });

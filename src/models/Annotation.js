@@ -40,6 +40,18 @@ const AnnotationSchema = new mongoose.Schema(
       type: String,
       default: "#FBBF24",
     },
+    imageUri: {
+      type: String,
+      trim: true,
+    },
+    videoUri: {
+      type: String,
+      trim: true,
+    },
+    voiceNoteUri: {
+      type: String,
+      trim: true,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

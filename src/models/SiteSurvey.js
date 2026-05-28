@@ -72,7 +72,36 @@ const SiteSurveySchema = new mongoose.Schema(
     },
     observationImage: {
       type: String,
-    }
+    },
+    // Interior-specific fields
+    roomCount: {
+      type: Number,
+    },
+    ceilingHeight: {
+      type: String,
+      trim: true,
+    },
+    naturalLighting: {
+      type: String,
+      enum: ['Excellent', 'Good', 'Limited', 'None'],
+    },
+    ventilationAvailable: {
+      type: Boolean,
+      default: false,
+    },
+    structuralModification: {
+      type: Boolean,
+      default: false,
+    },
+    structuralNotes: {
+      type: String,
+      trim: true,
+    },
+    clientStylePreference: {
+      type: String,
+      trim: true,
+    },
+    additionalPhotos: [{ type: String }],
   },
   {
     timestamps: true,

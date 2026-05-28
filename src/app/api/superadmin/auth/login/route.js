@@ -29,7 +29,11 @@ export async function POST(req) {
     await SuperAdmin.updateOne({ _id: superAdmin._id }, { $set: { lastLogin: new Date() } });
 
     const response = NextResponse.json(
-      { message: "Login successful", superAdmin: { id: superAdmin._id, name: superAdmin.name, email: superAdmin.email } },
+      {
+        message: "Login successful",
+        superAdmin: { id: superAdmin._id, name: superAdmin.name, email: superAdmin.email },
+        saToken: token,
+      },
       { status: 200 }
     );
 

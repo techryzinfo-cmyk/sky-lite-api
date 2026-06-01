@@ -8,8 +8,8 @@ import { withAuth } from "@/lib/middleware";
 /**
  * GET /api/projects/:id/budget-approvers
  *
- * Returns users who are assigned to this project (via either Project.members
- * OR User.projects) AND whose role has the "budget:approve" (or "*") permission.
+ * Returns users who are assigned to this project (via User.projects)
+ * AND whose role has the "budget:approve" (or "*") permission.
  */
 export const GET = withAuth(async function (req, { params }) {
   try {
@@ -50,7 +50,6 @@ export const GET = withAuth(async function (req, { params }) {
       role: { $in: approverRoleIds },
       $or: [
         { projects: id },           // assigned via User.projects
-        { _id: { $in: project.members } }, // assigned via Project.members
         { role: { $in: globalAdminRoleIds } } // global admins with "*" permission
       ]
     })

@@ -11,6 +11,11 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    currency: {
+      type: String,
+      required: true,
+      default: "AED",
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TemplateCategory",
@@ -30,7 +35,7 @@ const ProjectSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Pending Verification", "Completed", "On Hold", "Cancelled"],
+      enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Completed", "Pending Handover", "Handover Rejected", "Handover Completed", "On Hold", "Cancelled"],
       default: "Initialized",
       index: true,
     },
@@ -80,9 +85,13 @@ const ProjectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    closureRequestedFrom: {
+    handoverApprover: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    handoverRejectionReason: {
+      type: String,
+      trim: true,
     },
     documents: [
       {

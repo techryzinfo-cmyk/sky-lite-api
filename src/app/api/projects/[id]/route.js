@@ -18,7 +18,7 @@ export const GET = withAuth(async function (req, { params }) {
       .populate({ path: "members", select: "name email role", populate: { path: "role" } })
       .populate({ path: "siteSurveyor", select: "name email role", populate: { path: "role" } })
       .populate({ path: "snaggedBy", select: "name email role", populate: { path: "role" } })
-      .populate({ path: "closureRequestedFrom", select: "name email role", populate: { path: "role" } });
+      .populate({ path: "handoverApprover", select: "name email role", populate: { path: "role" } });
 
     if (!project) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });

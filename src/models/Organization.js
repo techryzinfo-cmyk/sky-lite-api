@@ -12,6 +12,11 @@ const OrganizationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    subscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+      default: null,
+    },
   },
   {
     timestamps: true,

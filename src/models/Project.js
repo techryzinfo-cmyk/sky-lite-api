@@ -11,6 +11,17 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    currency: {
+      type: String,
+      required: true,
+      default: "AED",
+    },
+    projectType: {
+      type: String,
+      enum: ["Construction", "Interior"],
+      default: "Construction",
+      index: true,
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TemplateCategory",

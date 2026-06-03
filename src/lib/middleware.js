@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { verifyAccessToken } from "./auth";
 import dbConnect from "./db";
 import User from "@/models/User";
+import Subscription from "@/models/Subscription";
+import Organization from "@/models/Organization";
 
 /**
  * Higher Order Function to protect API routes
@@ -63,6 +65,64 @@ export const withPermission = (handler, permission) => {
       return handler(req, ...args);
     } catch (error) {
       return NextResponse.json({ message: "Permission check error", error: error.message }, { status: 500 });
+    }
+  });
+};
+
+/**
+ * Feature-gate a route by subscription plan.
+ * usage: export const POST = withSubscription(handler, "boq_import")
+ *
+ * Suspended orgs are blocked regardless of feature.
+ * Trial orgs get access during the trial window.
+ */
+export const withSubscription = (handler, feature) => {
+  return withAuth(async (req, ...args) => {
+    try {
+      await dbConnect();
+      const org = await Organization.findById(req.user.organizationId).select("subscription");
+      const sub = org?.subscription
+        ? await Subscription.findById(org.subscription)
+        : null;
+
+      // No subscription record yet — allow (grace period for existing orgs)
+      if (!sub) return handler(req, ...args);
+
+      // Suspended org — full block
+      if (sub.status === "Suspended") {
+        return NextResponse.json(
+          { message: "Your organization account is suspended. Please contact support.", code: "ORG_SUSPENDED" },
+          { status: 403 }
+        );
+      }
+
+      // Expired trial
+      if (sub.status === "Trial" && sub.trialEndsAt && new Date() > sub.trialEndsAt) {
+        return NextResponse.json(
+          { message: "Your free trial has expired. Please upgrade to continue.", code: "TRIAL_EXPIRED" },
+          { status: 403 }
+        );
+      }
+
+      // Feature check (skip if no specific feature required)
+      if (feature && !sub.limits.features.includes(feature)) {
+        const planRequired = feature === "arabic" ? "Platinum" : "Gold or Platinum";
+        return NextResponse.json(
+          {
+            message: `This feature requires a ${planRequired} plan. Contact your administrator to upgrade.`,
+            code: "PLAN_UPGRADE_REQUIRED",
+            requiredFeature: feature,
+            currentPlan: sub.plan,
+          },
+          { status: 403 }
+        );
+      }
+
+      // Attach subscription to request for limit checks inside handlers
+      req.subscription = sub;
+      return handler(req, ...args);
+    } catch (error) {
+      return NextResponse.json({ message: "Subscription check error", error: error.message }, { status: 500 });
     }
   });
 };

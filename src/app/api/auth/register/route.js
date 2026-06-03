@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Role from "@/models/Role";
 import Organization from "@/models/Organization";
+import Subscription from "@/models/Subscription";
 
 export async function POST(req) {
   try {
@@ -53,6 +54,14 @@ export async function POST(req) {
 
     // 4. Update org owner to the real user _id
     org.owner = user._id;
+
+    // 5. Auto-create a 14-day Silver trial subscription for the new org
+    const sub = new Subscription({ organization: org._id });
+    sub.applyPlanDefaults();
+    sub.history.push({ plan: "Silver", status: "Trial", changedBy: "System", reason: "Account registration" });
+    await sub.save();
+    org.subscription = sub._id;
+
     await org.save();
 
     return NextResponse.json(

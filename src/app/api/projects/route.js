@@ -17,7 +17,10 @@ export const GET = withAuth(async function (req) {
     let query = { organization: req.user.organizationId };
     
     if (!isAdmin) {
-      query._id = { $in: userDoc?.projects || [] };
+      query.$or = [
+        { _id: { $in: userDoc?.projects || [] } },
+        { members: userDoc._id },
+      ];
     }
 
     const projects = await Project.find(query)
@@ -70,11 +73,13 @@ export const GET = withAuth(async function (req) {
 export const POST = withAuth(async function (req) {
   try {
     await dbConnect();
-    const { name, description, category, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
+    const { name, description, category, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey, currency, projectType } = await req.json();
 
     const projectData = {
       name,
       description,
+      currency: currency || "AED",
+      projectType: projectType || "Construction",
       category,
       clientName,
       clientEmail,

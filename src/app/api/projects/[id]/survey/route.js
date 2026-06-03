@@ -87,8 +87,9 @@ export const GET = withAuth(async function (req, { params }) {
     const survey = await SiteSurvey.findOne({ project: projectId, organization: req.user.organizationId })
       .populate("surveyor", "name email");
 
+    // Return null (not 404) so callers can distinguish "no survey yet" from a real error
     if (!survey) {
-      return NextResponse.json({ message: "Survey not found" }, { status: 404 });
+      return NextResponse.json(null, { status: 200 });
     }
 
     return NextResponse.json(survey);

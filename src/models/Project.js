@@ -39,6 +39,12 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    projectType: {
+      type: String,
+      enum: ["Construction", "Interior"],
+      default: "Construction",
+      index: true,
+    },
     status: {
       type: String,
       enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Completed", "Pending Handover", "Handover Rejected", "Handover Completed", "On Hold", "Cancelled"],

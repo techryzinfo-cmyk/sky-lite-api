@@ -13,9 +13,9 @@ export const GET = withAuth(async function (req) {
     
     const userDoc = await User.findById(req.user.id).populate("role");
     const isAdmin = userDoc?.role?.name === "Admin" || req.user.role === "Admin";
-    
+
     let query = { organization: req.user.organizationId };
-    
+
     if (!isAdmin) {
       query.$or = [
         { _id: { $in: userDoc?.projects || [] } },
@@ -73,7 +73,7 @@ export const GET = withAuth(async function (req) {
 export const POST = withAuth(async function (req) {
   try {
     await dbConnect();
-    const { name, description, category, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey, currency, projectType } = await req.json();
+    const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
 
     const projectData = {
       name,
@@ -81,6 +81,7 @@ export const POST = withAuth(async function (req) {
       currency: currency || "AED",
       projectType: projectType || "Construction",
       category,
+      projectType: projectType || "Construction",
       clientName,
       clientEmail,
       clientPhone,

@@ -29,4 +29,5 @@ const OrganizationSchema = new mongoose.Schema(
   }
 );
 
+delete mongoose.models.Organization;
 export default mongoose.models.Organization || mongoose.model("Organization", OrganizationSchema);

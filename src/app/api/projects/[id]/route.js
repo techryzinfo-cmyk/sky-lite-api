@@ -36,7 +36,7 @@ export const PUT = withAuth(async function (req, { params }) {
     const { id } = await params;
     await dbConnect();
     const body = await req.json();
-    const { name, description, clientName, clientEmail, clientPhone, status, priority, members, startDate, endDate, documents, updatedBy, needSiteSurvey, siteSurveyor, newBudget, budgetReason } = body;
+    const { name, description, clientName, clientEmail, clientPhone, status, priority, members, startDate, endDate, documents, updatedBy, needSiteSurvey, siteSurveyor, newBudget, budgetReason, area, currency } = body;
 
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId });
     if (!project) {
@@ -58,6 +58,8 @@ export const PUT = withAuth(async function (req, { params }) {
     if (updatedBy) project.updatedBy = updatedBy;
     if (needSiteSurvey !== undefined) project.needSiteSurvey = needSiteSurvey;
     if (siteSurveyor !== undefined) project.siteSurveyor = siteSurveyor;
+    if (area !== undefined) project.area = area ? Number(area) : null;
+    if (currency) project.currency = currency;
 
     // --- BUDGET VERSIONING LOGIC ---
     if (newBudget && budgetReason) {

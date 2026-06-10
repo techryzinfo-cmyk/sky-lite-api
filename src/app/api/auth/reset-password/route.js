@@ -19,7 +19,7 @@ export async function POST(req) {
     // 1. Find user by email and otp
     const user = await User.findOne({ 
       email: email.toLowerCase(),
-      resetPasswordOtp: otp,
+      resetPasswordOtp: String(otp),
       resetPasswordExpires: { $gt: Date.now() } // Ensure OTP hasn't expired
     });
 

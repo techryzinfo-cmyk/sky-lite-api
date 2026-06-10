@@ -7,12 +7,13 @@ import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
 import { sendEmail } from "@/lib/email";
 import { surveySumbittedEmail, surveyDecisionEmail } from "@/lib/emailTemplates";
+import Role from "@/models/Role";
 
 export const POST = withAuth(async function (req, { params }) {
   try {
     const { id: projectId } = await params;
     await dbConnect();
-    
+
     const surveyPayload = await req.json();
 
     // 1. Verify Project Exists
@@ -29,7 +30,7 @@ export const POST = withAuth(async function (req, { params }) {
       organization: req.user.organizationId,
       status: "Submitted" // Automatically set to submitted for now
     });
-    
+
     await newSurvey.save();
 
     // Note: Project status remains 'Site Survey' until the Admin approves it.
@@ -83,7 +84,7 @@ export const GET = withAuth(async function (req, { params }) {
   try {
     const { id: projectId } = await params;
     await dbConnect();
-    
+
     const survey = await SiteSurvey.findOne({ project: projectId, organization: req.user.organizationId })
       .populate("surveyor", "name email");
 
@@ -148,7 +149,7 @@ export const PATCH = withAuth(async function (req, { params }) {
 
       // Update the survey fields
       Object.assign(survey, updatePayload);
-      
+
       // If it was "Needs Attention", move it back to "Submitted"
       if (survey.status === "Needs Attention") {
         survey.status = "Submitted";

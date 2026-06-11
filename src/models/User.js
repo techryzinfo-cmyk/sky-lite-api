@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import mongooseFieldEncryption from "mongoose-field-encryption";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -101,6 +102,12 @@ UserSchema.pre("save", async function () {
 UserSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Encrypt specific PII fields
+UserSchema.plugin(mongooseFieldEncryption.fieldEncryption, {
+  fields: ["name", "phoneNumber"],
+  secret: process.env.ENCRYPTION_SECRET,
+});
 
 delete mongoose.models.User;
 export default mongoose.models.User || mongoose.model("User", UserSchema);

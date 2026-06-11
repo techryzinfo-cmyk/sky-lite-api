@@ -20,7 +20,7 @@ const SiteSurveySchema = new mongoose.Schema(
     },
     accessibility: {
       type: String,
-      enum: ["Good", "Fair", "Poor", "Hazardous"],
+      enum: ["Good", "Fair", "Poor", "Hazardous", "Needs Work"],
       default: "Good",
     },
     powerAvailable: {

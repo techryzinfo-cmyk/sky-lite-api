@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
-import Role from "@/models/Role";
-import Organization from "@/models/Organization";
-import Subscription from "@/models/Subscription";
+import OtpRegistration from "@/models/OtpRegistration";
+import { sendEmail } from "@/lib/email";
+import { otpEmail } from "@/lib/emailTemplates";
 
 export async function POST(req) {
   try {
     await dbConnect();
-    const { name, email, password } = await req.json();
+    const { name, email, password, phoneNumber } = await req.json();
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
@@ -20,66 +19,33 @@ export async function POST(req) {
       );
     }
 
-    // 1. Create Organization for this admin (placeholder owner, updated below)
-    const org = await Organization.create({
-      name: `${name}'s Workspace`,
-      owner: new mongoose.Types.ObjectId(),
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in OtpRegistration (upsert to handle if they try again)
+    await OtpRegistration.findOneAndUpdate(
+      { email },
+      { name, email, password, phoneNumber, otp, createdAt: Date.now() },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    // Send email
+    await sendEmail({
+      to: email,
+      subject: "Your Registration OTP - Skystruct App",
+      html: otpEmail({ name, otp }),
     });
-
-    // 2. Create Admin Role scoped to this organization
-    const adminRole = await Role.create({
-      name: "Admin",
-      permissions: ["*"],
-      isSystemRole: true,
-      organization: org._id,
-    });
-
-    // 3. Create user with org and role assigned
-    const user = new User({
-      name,
-      email,
-      password,
-      role: adminRole._id,
-      organization: org._id,
-    });
-
-    user.auditTrail.push({
-      userName: name,
-      userRole: "Admin",
-      action: "Create",
-      details: "Initial account registration — assigned Admin role",
-    });
-
-    await user.save();
-
-    // 4. Update org owner to the real user _id
-    org.owner = user._id;
-
-    // 5. Auto-create a 14-day Silver trial subscription for the new org
-    const sub = new Subscription({ organization: org._id });
-    sub.applyPlanDefaults();
-    sub.history.push({ plan: "Silver", status: "Trial", changedBy: "System", reason: "Account registration" });
-    await sub.save();
-    org.subscription = sub._id;
-
-    await org.save();
 
     return NextResponse.json(
       {
-        message: "User registered successfully",
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: adminRole.name,
-        },
+        message: "OTP sent successfully to email",
       },
-      { status: 201 }
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Registration initiation error:", error);
     return NextResponse.json(
-      { message: "Error registering user", error: error.message },
+      { message: "Error initiating registration", error: error.message },
       { status: 500 }
     );
   }

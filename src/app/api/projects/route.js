@@ -73,13 +73,14 @@ export const GET = withAuth(async function (req) {
 export const POST = withAuth(async function (req) {
   try {
     await dbConnect();
-    const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey } = await req.json();
+    const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey, currency, area, siteLocation, attendanceRadius } = await req.json();
 
     const projectData = {
       name,
       description,
-      category,
+      currency: currency || "AED",
       projectType: projectType || "Construction",
+      category,
       clientName,
       clientEmail,
       clientPhone,
@@ -97,7 +98,10 @@ export const POST = withAuth(async function (req) {
         }
       })),
       needSiteSurvey: needSiteSurvey || false,
+      area: area ? Number(area) : null,
       organization: req.user.organizationId,
+      siteLocation,
+      attendanceRadius: attendanceRadius ? Number(attendanceRadius) : 100,
     };
 
     // Initialize budget history if budget is provided

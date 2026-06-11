@@ -11,6 +11,21 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    currency: {
+      type: String,
+      required: true,
+      default: "AED",
+    },
+    area: {
+      type: Number,
+      default: null,
+    },
+    projectType: {
+      type: String,
+      enum: ["Construction", "Interior"],
+      default: "Construction",
+      index: true,
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TemplateCategory",
@@ -28,12 +43,7 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    projectType: {
-      type: String,
-      enum: ["Construction", "Interior"],
-      default: "Construction",
-      index: true,
-    },
+
     status: {
       type: String,
       enum: ["Initialized", "Planning", "Site Survey", "Ongoing", "Under Snagging", "Snagging Completed", "Completed", "Pending Handover", "Handover Rejected", "Handover Completed", "On Hold", "Cancelled"],
@@ -67,6 +77,15 @@ const ProjectSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    siteLocation: {
+      latitude: Number,
+      longitude: Number,
+      address: String,
+    },
+    attendanceRadius: {
+      type: Number,
+      default: 100, // default 100 meters
+    },
     startDate: {
       type: Date,
       index: true,

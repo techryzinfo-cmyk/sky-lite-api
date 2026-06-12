@@ -24,9 +24,9 @@ export const GET = withAuth(async function (req) {
     }
 
     const projects = await Project.find(query)
-      .populate("createdBy", "name email")
-      .populate("members", "name email")
-      .populate("siteSurveyor", "name email")
+      .populate("createdBy")
+      .populate("members")
+      .populate("siteSurveyor")
       .populate("category", "name");
 
     // Find which projects have at least one Pending plan document

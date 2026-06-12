@@ -67,14 +67,8 @@ export const POST = withAuth(async function (req) {
       // if (!withinAllowedRadius) return NextResponse.json({ message: "Outside radius" }, { status: 403 });
     }
 
-    // Determine Status (Simplified logic: assuming start time is 08:00 AM)
-    // You could make this dynamic based on project settings later
-    let status = "Present";
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    if (currentHour > 8 || (currentHour === 8 && currentMinute > 15)) {
-      status = "Late";
-    }
+    // Determine Status (Always Present for successful check-ins)
+    const status = "Present";
 
     const attendance = new Attendance({
       organization: req.user.organizationId,

@@ -32,7 +32,7 @@ export const GET = withAuth(async function (req) {
       query.user = userId;
     }
 
-    const records = await Attendance.find(query).populate("user", "name email").sort({ attendanceDate: -1 });
+    const records = await Attendance.find(query).populate("user").sort({ attendanceDate: -1 });
 
     return NextResponse.json({ records }, { status: 200 });
   } catch (error) {

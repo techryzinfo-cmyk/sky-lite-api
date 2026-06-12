@@ -8,8 +8,6 @@ export async function POST(req) {
   try {
     await dbConnect();
     const { email, password } = await req.json();
-    const allUsers = await User.find({});
-    console.log("allUsers", allUsers);
     // Find user and include password for comparison
     const user = await User.findOne({ email }).select("+password").populate("role");
 

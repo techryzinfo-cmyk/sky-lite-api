@@ -56,7 +56,7 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     return NextResponse.json(milestone);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating milestone", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating milestone" }, { status: 500 });
   }
 });
 
@@ -78,6 +78,6 @@ export const DELETE = withAuth(async function (req, { params }) {
     emitToProject(id, 'milestone:deleted', { milestoneId });
     return NextResponse.json({ message: "Milestone deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting milestone", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting milestone" }, { status: 500 });
   }
 });

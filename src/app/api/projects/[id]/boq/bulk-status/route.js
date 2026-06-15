@@ -75,6 +75,6 @@ export const PATCH = withAuth(async function (req, { params }) {
     });
   } catch (error) {
     console.error("BOQ bulk status update error:", error);
-    return NextResponse.json({ message: "Error updating status", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating status" }, { status: 500 });
   }
 });

@@ -61,7 +61,7 @@ export const DELETE = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Document deletion error:", error);
     return NextResponse.json(
-      { message: "Error deleting document", error: error.message },
+      { message: "Error deleting document" },
       { status: 500 }
     );
   }

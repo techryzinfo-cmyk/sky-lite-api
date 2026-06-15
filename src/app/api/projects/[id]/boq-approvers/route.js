@@ -70,7 +70,7 @@ export const GET = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("BOQ approvers error:", error);
     return NextResponse.json(
-      { message: "Error fetching BOQ approvers", error: error.message },
+      { message: "Error fetching BOQ approvers" },
       { status: 500 }
     );
   }

@@ -17,7 +17,7 @@ export const GET = withAuth(async function (req, { params }) {
 
     return NextResponse.json(materials);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching materials", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching materials" }, { status: 500 });
   }
 });
 
@@ -48,6 +48,6 @@ export const POST = withAuth(async function (req, { params }) {
     emitToProject(id, 'material:updated');
     return NextResponse.json(newMaterial, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating material", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating material" }, { status: 500 });
   }
 });

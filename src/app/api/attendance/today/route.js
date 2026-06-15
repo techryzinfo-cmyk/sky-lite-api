@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Attendance from "@/models/Attendance";
 import { withAuth } from "@/lib/middleware";
@@ -27,6 +27,6 @@ export const GET = withAuth(async function (req) {
     return NextResponse.json({ active: false, record: null }, { status: 200 });
   } catch (error) {
     console.error("GET /api/attendance/today error:", error);
-    return NextResponse.json({ message: "Error fetching today's status", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching today's status" }, { status: 500 });
   }
 });

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Template from "@/models/Template";
 import { withAuth } from "@/lib/middleware";
@@ -18,7 +18,7 @@ export const GET = withAuth(async function (req) {
   } catch (error) {
     console.error("Fetch templates error:", error);
     return NextResponse.json(
-      { message: "Error fetching templates", error: error.message },
+      { message: "Error fetching templates" },
       { status: 500 }
     );
   }
@@ -73,7 +73,7 @@ export const POST = withAuth(async function (req) {
     }
 
     return NextResponse.json(
-      { message: "Error creating template", error: error.message },
+      { message: "Error creating template" },
       { status: 500 }
     );
   }

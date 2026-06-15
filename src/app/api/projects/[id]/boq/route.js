@@ -46,7 +46,7 @@ export const GET = withAuth(async function (req, { params }) {
 
     return NextResponse.json(finalItems);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching BOQ", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching BOQ" }, { status: 500 });
   }
 });
 
@@ -104,7 +104,7 @@ export const POST = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("BOQ add error:", error);
     return NextResponse.json(
-      { message: "Error adding BOQ items", error: error.message },
+      { message: "Error adding BOQ items" },
       { status: 500 }
     );
   }

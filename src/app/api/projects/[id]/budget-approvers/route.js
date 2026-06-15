@@ -67,7 +67,7 @@ export const GET = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Budget approvers error:", error);
     return NextResponse.json(
-      { message: "Error fetching budget approvers", error: error.message },
+      { message: "Error fetching budget approvers" },
       { status: 500 }
     );
   }

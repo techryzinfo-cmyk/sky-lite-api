@@ -64,6 +64,6 @@ export const POST = withAuth(async function (req, { params }) {
 
   } catch (error) {
     console.error("XER Import Error:", error);
-    return NextResponse.json({ message: "Error importing XER", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error importing XER" }, { status: 500 });
   }
 });

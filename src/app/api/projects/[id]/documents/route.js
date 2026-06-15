@@ -82,7 +82,7 @@ export const POST = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Project document upload error:", error);
     return NextResponse.json(
-      { message: "Error uploading document", error: error.message },
+      { message: "Error uploading document" },
       { status: 500 }
     );
   }

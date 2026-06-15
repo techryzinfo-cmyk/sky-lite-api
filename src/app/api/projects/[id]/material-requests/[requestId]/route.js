@@ -22,7 +22,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     emitToProject(projectId, "material:updated");
     return NextResponse.json(request);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating request", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating request" }, { status: 500 });
   }
 });
 
@@ -41,6 +41,6 @@ export const DELETE = withAuth(async function (req, { params }) {
     emitToProject(projectId, "material:updated");
     return NextResponse.json({ message: "Request deleted" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting request", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting request" }, { status: 500 });
   }
 });

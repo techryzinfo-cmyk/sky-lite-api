@@ -16,7 +16,7 @@ export const GET = withSubscription(async function (req, { params }) {
 
     return NextResponse.json(room);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching room", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching room" }, { status: 500 });
   }
 }, "interior");
 
@@ -38,7 +38,7 @@ export const PATCH = withSubscription(async function (req, { params }) {
 
     return NextResponse.json(room);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating room", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating room" }, { status: 500 });
   }
 }, "interior");
 
@@ -55,6 +55,6 @@ export const DELETE = withSubscription(async function (req, { params }) {
 
     return NextResponse.json({ message: "Room deleted" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting room", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting room" }, { status: 500 });
   }
 }, "interior");

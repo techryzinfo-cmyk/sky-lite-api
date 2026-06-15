@@ -24,6 +24,6 @@ export const GET = withAuth(async function (req, { params }) {
     return NextResponse.json(versions);
   } catch (error) {
     console.error("Fetch BOQ history error:", error);
-    return NextResponse.json({ message: "Error fetching history", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching history" }, { status: 500 });
   }
 });

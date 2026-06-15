@@ -34,7 +34,7 @@ export const PATCH = withRole(async function (req, { params }) {
     return NextResponse.json(category);
   } catch (error) {
     return NextResponse.json(
-      { message: "Error updating category", error: error.message },
+      { message: "Error updating category" },
       { status: 500 }
     );
   }
@@ -59,7 +59,7 @@ export const DELETE = withRole(async function (req, { params }) {
     return NextResponse.json({ message: "Category and associated templates removed successfully" });
   } catch (error) {
     return NextResponse.json(
-      { message: "Error removing category", error: error.message },
+      { message: "Error removing category" },
       { status: 500 }
     );
   }

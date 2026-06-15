@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Attendance from "@/models/Attendance";
 import { withAuth } from "@/lib/middleware";
@@ -42,6 +42,6 @@ export const PUT = withAuth(async function (req) {
     return NextResponse.json({ success: true, attendance }, { status: 200 });
   } catch (error) {
     console.error("PUT /api/attendance/check-out error:", error);
-    return NextResponse.json({ message: "Error during check-out", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error during check-out" }, { status: 500 });
   }
 });

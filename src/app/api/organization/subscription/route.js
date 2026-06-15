@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Organization from "@/models/Organization";
 import Subscription from "@/models/Subscription";
@@ -40,6 +40,6 @@ export const GET = withAuth(async function (req) {
       },
     });
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching subscription", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching subscription" }, { status: 500 });
   }
 });

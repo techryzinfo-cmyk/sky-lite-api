@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { verifyAccessToken } from "./auth";
 import dbConnect from "./db";
 import User from "@/models/User";
@@ -29,7 +29,7 @@ export const withAuth = (handler) => {
 
       return handler(req, ...args);
     } catch (error) {
-      return NextResponse.json({ message: "Authentication error", error: error.message }, { status: 500 });
+      return NextResponse.json({ message: "Authentication error" }, { status: 500 });
     }
   };
 };
@@ -64,7 +64,7 @@ export const withPermission = (handler, permission) => {
       }
       return handler(req, ...args);
     } catch (error) {
-      return NextResponse.json({ message: "Permission check error", error: error.message }, { status: 500 });
+      return NextResponse.json({ message: "Permission check error" }, { status: 500 });
     }
   });
 };
@@ -122,7 +122,7 @@ export const withSubscription = (handler, feature) => {
       req.subscription = sub;
       return handler(req, ...args);
     } catch (error) {
-      return NextResponse.json({ message: "Subscription check error", error: error.message }, { status: 500 });
+      return NextResponse.json({ message: "Subscription check error" }, { status: 500 });
     }
   });
 };

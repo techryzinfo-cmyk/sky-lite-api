@@ -52,6 +52,12 @@ const ChatMessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }
+    ],
   },
   {
     timestamps: true,

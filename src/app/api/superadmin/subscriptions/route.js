@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Subscription from "@/models/Subscription";
 import Organization from "@/models/Organization";
@@ -38,7 +38,7 @@ export const GET = withSuperAdmin(async function () {
 
     return NextResponse.json(results);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching subscriptions", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching subscriptions" }, { status: 500 });
   }
 });
 
@@ -98,6 +98,6 @@ export const POST = withSuperAdmin(async function (req) {
 
     return NextResponse.json(sub, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error saving subscription", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error saving subscription" }, { status: 500 });
   }
 });

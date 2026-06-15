@@ -29,6 +29,6 @@ export const DELETE = withAuth(async function (req, { params }) {
     emitToProject(projectId, "material:updated");
     return NextResponse.json({ message: "Usage log deleted and stock restored" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting usage log", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting usage log" }, { status: 500 });
   }
 });

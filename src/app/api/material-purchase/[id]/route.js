@@ -81,7 +81,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     });
   } catch (error) {
     console.error("Update material purchase error:", error);
-    return NextResponse.json({ message: "Error updating material purchase", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating material purchase" }, { status: 500 });
   }
 });
 

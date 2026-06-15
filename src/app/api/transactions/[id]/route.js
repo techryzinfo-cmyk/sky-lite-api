@@ -19,7 +19,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     const transaction = await Transaction.findOneAndUpdate(
       { _id: transactionId, organization: req.user.organizationId },
       { $set: updateData },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!transaction) {

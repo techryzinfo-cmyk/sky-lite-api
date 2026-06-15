@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Role from "@/models/Role";
 import User from "@/models/User";
@@ -25,7 +25,7 @@ export const GET = withAuth(async function (req) {
 
     return NextResponse.json(roleStats);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching roles", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching roles" }, { status: 500 });
   }
 });
 
@@ -54,7 +54,7 @@ export const POST = withRole(async function (req) {
 
     return NextResponse.json(role, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating role", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating role" }, { status: 500 });
   }
 }, ["Admin"]);
 

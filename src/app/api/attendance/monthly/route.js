@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Attendance from "@/models/Attendance";
 import { withAuth } from "@/lib/middleware";
@@ -37,6 +37,6 @@ export const GET = withAuth(async function (req) {
     return NextResponse.json({ records }, { status: 200 });
   } catch (error) {
     console.error("GET /api/attendance/monthly error:", error);
-    return NextResponse.json({ message: "Error fetching monthly attendance", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching monthly attendance" }, { status: 500 });
   }
 });

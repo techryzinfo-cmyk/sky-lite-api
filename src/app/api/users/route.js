@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { withAuth, withRole } from "@/lib/middleware";
@@ -46,7 +46,7 @@ export const GET = withAuth(async function (req) {
   } catch (error) {
     console.error("Fetch users error:", error);
     return NextResponse.json(
-      { message: "Error fetching team members", error: error.message },
+      { message: "Error fetching team members" },
       { status: 500 }
     );
   }
@@ -130,7 +130,7 @@ export const POST = withRole(async function (req) {
     }
 
     return NextResponse.json(
-      { message: "Error onboarding new member", error: error.message },
+      { message: "Error onboarding new member" },
       { status: 500 }
     );
   }

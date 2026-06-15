@@ -103,6 +103,6 @@ export const POST = withAuth(async function (req, { params }) {
     }, { status: 201 });
   } catch (error) {
     console.error("Create material receipt error:", error);
-    return NextResponse.json({ message: "Error creating material receipt", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating material receipt" }, { status: 500 });
   }
 });

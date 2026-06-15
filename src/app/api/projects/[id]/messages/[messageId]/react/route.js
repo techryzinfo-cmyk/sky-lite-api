@@ -53,6 +53,6 @@ export const PATCH = withAuth(async function (req, { params }) {
     return NextResponse.json(message);
   } catch (error) {
     console.error("Reaction error:", error);
-    return NextResponse.json({ message: "Error updating reaction", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating reaction" }, { status: 500 });
   }
 });

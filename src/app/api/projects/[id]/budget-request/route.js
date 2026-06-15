@@ -82,7 +82,7 @@ export const POST = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Budget request error:", error);
     return NextResponse.json(
-      { message: "Error sending budget request", error: error.message },
+      { message: "Error sending budget request" },
       { status: 500 }
     );
   }

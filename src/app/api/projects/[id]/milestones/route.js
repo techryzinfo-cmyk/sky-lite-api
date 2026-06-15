@@ -16,7 +16,7 @@ export const GET = withAuth(async function (req, { params }) {
 
     return NextResponse.json(milestones);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching milestones", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching milestones" }, { status: 500 });
   }
 });
 
@@ -57,6 +57,6 @@ export const POST = withAuth(async function (req, { params }) {
 
     return NextResponse.json(milestone, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating milestone", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating milestone" }, { status: 500 });
   }
 });

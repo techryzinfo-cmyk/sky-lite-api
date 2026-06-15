@@ -21,7 +21,7 @@ export const GET = withAuth(async function (req, { params }) {
     const folders = await PlanFolder.find({ project: id }).sort({ createdAt: 1 });
     return NextResponse.json(folders);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching plan folders", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching plan folders" }, { status: 500 });
   }
 });
 
@@ -77,6 +77,6 @@ export const POST = withAuth(async function (req, { params }) {
     emitToProject(id, 'plans:updated');
     return NextResponse.json(newFolder, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating plan folder", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating plan folder" }, { status: 500 });
   }
 });

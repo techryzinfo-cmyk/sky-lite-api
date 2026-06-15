@@ -22,7 +22,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     emitToProject(projectId, "material:updated");
     return NextResponse.json(purchase);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating purchase order", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating purchase order" }, { status: 500 });
   }
 });
 
@@ -41,6 +41,6 @@ export const DELETE = withAuth(async function (req, { params }) {
     emitToProject(projectId, "material:updated");
     return NextResponse.json({ message: "Purchase order deleted" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting purchase order", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting purchase order" }, { status: 500 });
   }
 });

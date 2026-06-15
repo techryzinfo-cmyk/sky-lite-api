@@ -21,6 +21,6 @@ export const PATCH = withAuth(async function (req, { params }) {
     emitToProject(projectId, "material:updated");
     return NextResponse.json({ message: `${ids.length} request(s) updated to ${status}` });
   } catch (error) {
-    return NextResponse.json({ message: "Error bulk updating requests", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error bulk updating requests" }, { status: 500 });
   }
 });

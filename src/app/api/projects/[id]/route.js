@@ -26,7 +26,7 @@ export const GET = withAuth(async function (req, { params }) {
 
     return NextResponse.json(project);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching project", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching project" }, { status: 500 });
   }
 });
 
@@ -93,7 +93,7 @@ export const PUT = withAuth(async function (req, { params }) {
     emitToProject(id, 'project:updated');
     return NextResponse.json(project);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating project", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating project" }, { status: 500 });
   }
 });
 
@@ -142,7 +142,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     emitToProject(id, 'project:updated');
     return NextResponse.json(project);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating project", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating project" }, { status: 500 });
   }
 });
 
@@ -159,6 +159,6 @@ export const DELETE = withAuth(async function (req, { params }) {
 
     return NextResponse.json({ message: "Project deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting project", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting project" }, { status: 500 });
   }
 });

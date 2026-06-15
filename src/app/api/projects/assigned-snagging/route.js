@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import { withAuth } from "@/lib/middleware";
@@ -17,6 +17,6 @@ export const GET = withAuth(async function (req) {
 
     return NextResponse.json(projects);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching assigned snaggings", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching assigned snaggings" }, { status: 500 });
   }
 });

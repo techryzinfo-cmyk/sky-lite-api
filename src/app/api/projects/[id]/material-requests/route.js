@@ -75,6 +75,6 @@ export const POST = withAuth(async function (req, { params }) {
     }, { status: 201 });
   } catch (error) {
     console.error("Create material request error:", error);
-    return NextResponse.json({ message: "Error creating material request", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating material request" }, { status: 500 });
   }
 });

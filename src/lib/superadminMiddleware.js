@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyAccessToken } from "./auth";
 
@@ -33,7 +33,7 @@ export const withSuperAdmin = (handler) => {
       req.superAdmin = decoded;
       return handler(req, ...args);
     } catch (error) {
-      return NextResponse.json({ message: "Authentication error", error: error.message }, { status: 500 });
+      return NextResponse.json({ message: "Authentication error" }, { status: 500 });
     }
   };
 };

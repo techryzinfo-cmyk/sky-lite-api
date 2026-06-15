@@ -64,6 +64,11 @@ const UserSchema = new mongoose.Schema(
     resetPasswordExpires: {
       type: Date,
     },
+    pushTokens: [
+      {
+        type: String,
+      }
+    ],
     auditTrail: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

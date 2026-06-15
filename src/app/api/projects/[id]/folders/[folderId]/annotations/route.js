@@ -38,7 +38,7 @@ export const GET = withPermission(async function (req, { params }) {
 
     return NextResponse.json(annotations);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching annotations", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching annotations" }, { status: 500 });
   }
 }, "annotations:view");
 
@@ -101,7 +101,7 @@ export const PATCH = withPermission(async function (req, { params }) {
     return NextResponse.json(saved);
   } catch (error) {
     return NextResponse.json(
-      { message: "Error saving annotations", error: error.message },
+      { message: "Error saving annotations" },
       { status: 500 }
     );
   }

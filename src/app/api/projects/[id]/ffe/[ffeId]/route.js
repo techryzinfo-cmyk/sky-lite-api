@@ -28,7 +28,7 @@ export const PATCH = withSubscription(async function (req, { params }) {
 
     return NextResponse.json(item);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating FFE item", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating FFE item" }, { status: 500 });
   }
 }, "interior");
 
@@ -45,6 +45,6 @@ export const DELETE = withSubscription(async function (req, { params }) {
 
     return NextResponse.json({ message: "FFE item deleted" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting FFE item", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting FFE item" }, { status: 500 });
   }
 }, "interior");

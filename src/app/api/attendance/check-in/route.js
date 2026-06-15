@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Attendance from "@/models/Attendance";
 import Project from "@/models/Project";
@@ -90,6 +90,6 @@ export const POST = withAuth(async function (req) {
     return NextResponse.json({ success: true, attendance }, { status: 201 });
   } catch (error) {
     console.error("POST /api/attendance/check-in error:", error);
-    return NextResponse.json({ message: "Error during check-in", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error during check-in" }, { status: 500 });
   }
 });

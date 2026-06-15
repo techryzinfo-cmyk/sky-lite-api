@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"; // touch to trigger rebuild
+﻿import { NextResponse } from "next/server"; // touch to trigger rebuild
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Role from "@/models/Role"; // Ensure Role schema is registered for population
@@ -66,7 +66,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { message: "Error during login", error: error.message },
+      { message: "Error during login" },
       { status: 500 }
     );
   }

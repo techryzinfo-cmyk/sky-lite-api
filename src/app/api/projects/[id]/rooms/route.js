@@ -18,7 +18,7 @@ export const GET = withSubscription(async function (req, { params }) {
 
     return NextResponse.json(rooms);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching rooms", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching rooms" }, { status: 500 });
   }
 }, "interior");
 
@@ -68,6 +68,6 @@ export const POST = withSubscription(async function (req, { params }) {
     await room.save();
     return NextResponse.json(room, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating room", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating room" }, { status: 500 });
   }
 }, "interior");

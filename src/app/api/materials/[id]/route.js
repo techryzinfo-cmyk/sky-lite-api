@@ -94,7 +94,7 @@
 //     return NextResponse.json(material);
 //   } catch (error) {
 //     console.error("Material update error:", error);
-//     return NextResponse.json({ message: "Error updating material", error: error.message }, { status: 500 });
+//     return NextResponse.json({ message: "Error updating material" }, { status: 500 });
 //   }
 // });
 
@@ -114,7 +114,7 @@
 
 //     return NextResponse.json({ message: "Material deleted successfully" });
 //   } catch (error) {
-//     return NextResponse.json({ message: "Error deleting material", error: error.message }, { status: 500 });
+//     return NextResponse.json({ message: "Error deleting material" }, { status: 500 });
 //   }
 // });
 import { NextResponse } from "next/server";
@@ -219,7 +219,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     return NextResponse.json(material);
   } catch (error) {
     console.error("Material update error:", error);
-    return NextResponse.json({ message: "Error updating material", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating material" }, { status: 500 });
   }
 });
  
@@ -239,7 +239,7 @@ export const DELETE = withAuth(async function (req, { params }) {
  
     return NextResponse.json({ message: "Material deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting material", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting material" }, { status: 500 });
   }
 });
  

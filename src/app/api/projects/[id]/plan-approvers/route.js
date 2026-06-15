@@ -57,7 +57,7 @@ export const GET = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Plan approvers error:", error);
     return NextResponse.json(
-      { message: "Error fetching plan approvers", error: error.message },
+      { message: "Error fetching plan approvers" },
       { status: 500 }
     );
   }

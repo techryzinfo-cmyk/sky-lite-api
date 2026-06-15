@@ -88,7 +88,7 @@ export const PATCH = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Budget action error:", error);
     return NextResponse.json(
-      { message: "Error updating budget status", error: error.message },
+      { message: "Error updating budget status" },
       { status: 500 }
     );
   }

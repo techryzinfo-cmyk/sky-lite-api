@@ -19,7 +19,7 @@ export const GET = withAuth(async function (req, { params }) {
 
     return NextResponse.json(messages);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching messages", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching messages" }, { status: 500 });
   }
 });
 
@@ -54,8 +54,63 @@ export const POST = withAuth(async function (req, { params }) {
     // Broadcast message via socket
     emitToProject(projectId, 'chat:message', message);
 
+    // Also emit to all project members so their dashboards can update
+    const Project = require("@/models/Project").default || require("@/models/Project");
+    const { emitToUser } = require("@/lib/socket-server");
+    const proj = await Project.findById(projectId).select("name members createdBy");
+    if (proj) {
+      const allMembers = new Set([
+        ...(proj.members || []).map(m => m.toString()),
+        proj.createdBy?.toString()
+      ]);
+      allMembers.forEach(memberId => {
+        if (memberId) {
+          emitToUser(memberId, 'chat:message', message);
+        }
+      });
+
+      // Fetch user objects to get push tokens
+      const User = require("@/models/User").default || require("@/models/User");
+      const users = await User.find({ 
+        _id: { $in: Array.from(allMembers) },
+        _id: { $ne: req.user.id }
+      }).select("pushTokens");
+
+      const pushMessages = [];
+      users.forEach(u => {
+        if (u.pushTokens && u.pushTokens.length > 0) {
+          u.pushTokens.forEach(token => {
+            pushMessages.push({
+              to: token,
+              sound: 'default',
+              title: `${proj.name || 'Project'} - New Message`,
+              body: `${req.user.name || "User"}: ${content || "Sent an attachment"}`,
+              data: { projectId, screen: 'Chat' },
+              categoryId: 'chat_message',
+            });
+          });
+        }
+      });
+
+      if (pushMessages.length > 0) {
+        try {
+          fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Accept-encoding': 'gzip, deflate',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(pushMessages),
+          }).catch(err => console.error("Expo Push fetch error:", err));
+        } catch (pushErr) {
+          console.error("Failed to send push notifications:", pushErr);
+        }
+      }
+    }
+
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error sending message", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error sending message" }, { status: 500 });
   }
 });

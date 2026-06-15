@@ -23,7 +23,7 @@ export const GET = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Fetch template error:", error);
     return NextResponse.json(
-      { message: "Error fetching template", error: error.message },
+      { message: "Error fetching template" },
       { status: 500 }
     );
   }
@@ -57,7 +57,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     const updatedTemplate = await Template.findOneAndUpdate(
       { _id: id, organization: req.user.organizationId },
       updateData,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate("category", "name");
 
     if (!updatedTemplate) {
@@ -68,7 +68,7 @@ export const PATCH = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Update template error:", error);
     return NextResponse.json(
-      { message: "Error updating template", error: error.message },
+      { message: "Error updating template" },
       { status: 500 }
     );
   }
@@ -92,7 +92,7 @@ export const DELETE = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Delete template error:", error);
     return NextResponse.json(
-      { message: "Error deleting template", error: error.message },
+      { message: "Error deleting template" },
       { status: 500 }
     );
   }

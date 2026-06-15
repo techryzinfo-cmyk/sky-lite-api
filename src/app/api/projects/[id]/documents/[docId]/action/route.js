@@ -88,7 +88,7 @@ export const PATCH = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Document action error:", error);
     return NextResponse.json(
-      { message: "Error performing action", error: error.message },
+      { message: "Error performing action" },
       { status: 500 }
     );
   }

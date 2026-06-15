@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Role from "@/models/Role";
@@ -32,6 +32,6 @@ export async function POST(req) {
       token: accessToken,
     });
   } catch (error) {
-    return NextResponse.json({ message: "Error refreshing token", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error refreshing token" }, { status: 500 });
   }
 }

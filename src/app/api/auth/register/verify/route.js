@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
@@ -52,29 +52,17 @@ export async function POST(req) {
     });
 
     // 3. Create user with org and role assigned
+    // Password from OtpRegistration is already bcrypt-hashed (hashed at registration time).
+    // Assign it directly then call unmarkModified so the User pre('save') hook skips re-hashing.
     const user = new User({
       name,
       email: lowerEmail,
-      password, // Password is already hashed in OtpRegistration pre-save, wait - mongoose User.pre('save') will hash it again if it thinks it's modified.
-      // Wait, User pre('save') hashes password if isModified. But if we pass hashed password, it'll double hash.
+      password,
       phoneNumber,
       role: adminRole._id,
       organization: org._id,
     });
-    
-    // We need to bypass the User.pre('save') hashing if it's already hashed, 
-    // OR we can just store raw password in OtpRegistration and let User handle it.
-    // Since OtpRegistration hashes it, passing it here to User model will cause double hash.
-    // Let's manually set the password field and mark it as not modified? No.
-    // Instead of messing with Mongoose internals, it's safer to store raw password in OtpRegistration? 
-    // Wait, storing raw password is bad practice even temporarily.
-    // But since `otpRecord.password` is already hashed, we can use `User.create` or `insertMany` or update UserSchema, or simply overwrite the hash manually.
-    // Actually, `OtpRegistration` `pre('save')` hashes it. When we create `User`, its `pre('save')` will hash it again.
-    // Let's modify the way we pass password.
-    // `user.password = password;`
-    // Wait, `user.save()` will trigger the hash. We can temporarily skip validation/hooks or just not hash it in `OtpRegistration`. 
-    // Let's assume we change `OtpRegistration` to not hash, or we just remove the `pre('save')` from `OtpRegistration`.
-    // Let's fix that below by editing `OtpRegistration.js` to NOT hash the password.
+    user.unmarkModified("password"); // Password is pre-hashed — prevent double hashing
 
     user.auditTrail.push({
       userName: name,
@@ -115,7 +103,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("OTP verification error:", error);
     return NextResponse.json(
-      { message: "Error verifying OTP", error: error.message },
+      { message: "Error verifying OTP" },
       { status: 500 }
     );
   }

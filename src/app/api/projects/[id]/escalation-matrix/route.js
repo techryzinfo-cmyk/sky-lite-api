@@ -60,7 +60,7 @@ export const POST = withAuth(async function (req, { params }) {
           }
         }
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     emitToProject(id, 'escalation:updated');

@@ -88,7 +88,7 @@ export const PUT = withAuth(async function (req, { params }) {
     emitToProject(id, 'plans:updated');
     return NextResponse.json(folder);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating folder", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating folder" }, { status: 500 });
   }
 });
 
@@ -351,7 +351,7 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     return NextResponse.json({ message: "Invalid action" }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ message: "Error updating document", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating document" }, { status: 500 });
   }
 });
 
@@ -369,6 +369,6 @@ export const DELETE = withAuth(async function (req, { params }) {
     emitToProject(id, 'plans:updated');
     return NextResponse.json({ message: "Folder deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting folder", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting folder" }, { status: 500 });
   }
 });

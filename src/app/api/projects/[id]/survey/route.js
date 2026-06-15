@@ -73,7 +73,7 @@ export const POST = withAuth(async function (req, { params }) {
   } catch (error) {
     console.error("Site survey submission error:", error);
     return NextResponse.json(
-      { message: "Error submitting site survey", error: error.message },
+      { message: "Error submitting site survey" },
       { status: 500 }
     );
   }
@@ -96,7 +96,7 @@ export const GET = withAuth(async function (req, { params }) {
     return NextResponse.json(survey);
   } catch (error) {
     return NextResponse.json(
-      { message: "Error fetching site survey", error: error.message },
+      { message: "Error fetching site survey" },
       { status: 500 }
     );
   }
@@ -188,6 +188,6 @@ export const PATCH = withAuth(async function (req, { params }) {
     emitToProject(projectId, 'survey:updated');
     return NextResponse.json(survey);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating survey status", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating survey status" }, { status: 500 });
   }
 });

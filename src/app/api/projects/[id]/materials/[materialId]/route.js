@@ -17,6 +17,6 @@ export const DELETE = withAuth(async function (req, { params }) {
 
     return NextResponse.json({ message: "Material deleted" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting material", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting material" }, { status: 500 });
   }
 });

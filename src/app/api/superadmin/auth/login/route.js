@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import SuperAdmin from "@/models/SuperAdmin";
 import { generateSuperAdminToken } from "@/lib/auth";
@@ -49,6 +49,6 @@ export async function POST(req) {
     return response;
   } catch (error) {
     console.error("SuperAdmin login error:", error);
-    return NextResponse.json({ message: "Login error", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Login error" }, { status: 500 });
   }
 }

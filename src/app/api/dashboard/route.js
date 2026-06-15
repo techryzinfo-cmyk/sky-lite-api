@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import Milestone from "@/models/Milestone";
@@ -115,6 +115,6 @@ export const GET = withAuth(async function (req) {
     });
   } catch (error) {
     console.error("GET /api/dashboard error:", error);
-    return NextResponse.json({ message: "Error fetching dashboard data", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching dashboard data" }, { status: 500 });
   }
 });

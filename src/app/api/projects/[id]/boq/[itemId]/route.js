@@ -106,7 +106,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     return NextResponse.json(newBOQItem);
   } catch (error) {
     console.error("BOQ update error:", error);
-    return NextResponse.json({ message: "Error updating BOQ", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating BOQ" }, { status: 500 });
   }
 });
 
@@ -141,6 +141,6 @@ export const DELETE = withAuth(async function (req, { params }) {
     return NextResponse.json({ message: "BOQ item deleted" });
   } catch (error) {
     console.error("BOQ delete error:", error);
-    return NextResponse.json({ message: "Error deleting BOQ", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting BOQ" }, { status: 500 });
   }
 });

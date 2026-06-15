@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Notification from '@/models/Notification';
 import { verifyAccessToken } from '@/lib/auth';
@@ -20,7 +20,7 @@ export async function GET(req) {
     return NextResponse.json(notifications || []);
   } catch (error) {
     console.error('Notification GET error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -42,6 +42,6 @@ export async function PATCH(req) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Notification PATCH error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

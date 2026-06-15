@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import OtpRegistration from "@/models/OtpRegistration";
@@ -19,15 +20,22 @@ export async function POST(req) {
       );
     }
 
+    // Hash password before storing — never persist plaintext credentials
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Store in OtpRegistration (upsert to handle if they try again)
     await OtpRegistration.findOneAndUpdate(
       { email },
-      { name, email, password, phoneNumber, otp, createdAt: Date.now() },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { name, email, password: hashedPassword, phoneNumber, otp, createdAt: Date.now() },
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
+
+    // Development fallback so user isn't stuck if Gmail limit is exceeded
+    console.log(`[DEV] Registration OTP for ${email}: ${otp}`);
 
     // Send email
     await sendEmail({
@@ -45,7 +53,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("Registration initiation error:", error);
     return NextResponse.json(
-      { message: "Error initiating registration", error: error.message },
+      { message: "Error initiating registration" },
       { status: 500 }
     );
   }

@@ -65,7 +65,7 @@ export const PATCH = withRole(async function (req, { params }) {
       const messages = Object.values(error.errors).map(err => err.message);
       return NextResponse.json({ message: messages.join(", ") }, { status: 400 });
     }
-    return NextResponse.json({ message: "Error updating member", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating member" }, { status: 500 });
   }
 }, ["Admin"]);
 
@@ -95,6 +95,6 @@ export const DELETE = withRole(async function (req, { params }) {
 
     return NextResponse.json({ message: "Member removed successfully" });
   } catch (error) {
-    return NextResponse.json({ message: "Error removing member", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error removing member" }, { status: 500 });
   }
 }, ["Admin"]);

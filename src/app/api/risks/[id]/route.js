@@ -11,7 +11,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     const body = await req.json();
     await dbConnect();
 
-    const existingRisk = await Risk.findById(id);
+    const existingRisk = await Risk.findOne({ _id: id, organization: req.user.organizationId });
     if (!existingRisk) return NextResponse.json({ message: "Risk not found" }, { status: 404 });
 
     const updateData = { ...body };
@@ -58,7 +58,7 @@ export const DELETE = withAuth(async function (req, { params }) {
     const { id } =await params;
     await dbConnect();
 
-    const risk = await Risk.findById(id);
+    const risk = await Risk.findOne({ _id: id, organization: req.user.organizationId });
     if (!risk) return NextResponse.json({ message: "Risk not found" }, { status: 404 });
 
     // Only Admin, SuperAdmin or Owner can delete

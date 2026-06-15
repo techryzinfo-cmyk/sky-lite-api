@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { withAuth } from "@/lib/middleware";
@@ -27,7 +27,7 @@ export const POST = withAuth(async function (req) {
   } catch (error) {
     console.error("Logout error:", error);
     return NextResponse.json(
-      { message: "Error during logout", error: error.message },
+      { message: "Error during logout" },
       { status: 500 }
     );
   }

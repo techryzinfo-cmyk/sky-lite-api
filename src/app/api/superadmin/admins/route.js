@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Organization from "@/models/Organization";
 import User from "@/models/User";
@@ -35,6 +35,6 @@ export const GET = withSuperAdmin(async function () {
     return NextResponse.json(admins);
   } catch (error) {
     console.error("SuperAdmin admins fetch error:", error);
-    return NextResponse.json({ message: "Error fetching admins", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching admins" }, { status: 500 });
   }
 });

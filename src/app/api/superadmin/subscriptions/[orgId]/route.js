@@ -17,7 +17,7 @@ export const GET = withSuperAdmin(async function (req, { params }) {
 
     return NextResponse.json(sub);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching subscription", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching subscription" }, { status: 500 });
   }
 });
 
@@ -53,6 +53,6 @@ export const PATCH = withSuperAdmin(async function (req, { params }) {
 
     return NextResponse.json(sub);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating subscription", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating subscription" }, { status: 500 });
   }
 });

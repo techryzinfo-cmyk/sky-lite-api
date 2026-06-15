@@ -16,7 +16,7 @@ export const GET = withAuth(async function (req, { params }) {
     }
     return NextResponse.json(role);
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching role", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching role" }, { status: 500 });
   }
 });
 
@@ -63,7 +63,7 @@ export const PATCH = withRole(async function (req, { params }) {
 
     return NextResponse.json(role);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating role", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating role" }, { status: 500 });
   }
 }, ["Admin"]);
 
@@ -95,6 +95,6 @@ export const DELETE = withRole(async function (req, { params }) {
       message: `Role and ${deletedUsers.deletedCount} members removed successfully` 
     });
   } catch (error) {
-    return NextResponse.json({ message: "Error removing role", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error removing role" }, { status: 500 });
   }
 }, ["Admin"]);

@@ -99,7 +99,7 @@
 //     }, { status: 201 });
 //   } catch (error) {
 //     console.error("Create material usage error:", error);
-//     return NextResponse.json({ message: "Error creating material usage", error: error.message }, { status: 500 });
+//     return NextResponse.json({ message: "Error creating material usage" }, { status: 500 });
 //   }
 // });
 
@@ -212,7 +212,7 @@ export const POST = withAuth(async function (req, { params }) {
     }, { status: 201 });
   } catch (error) {
     console.error("Create material usage error:", error);
-    return NextResponse.json({ message: "Error creating material usage", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating material usage" }, { status: 500 });
   }
 });
  

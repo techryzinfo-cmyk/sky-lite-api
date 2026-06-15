@@ -31,7 +31,7 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     return NextResponse.json(message);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating message", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating message" }, { status: 500 });
   }
 });
 
@@ -64,6 +64,6 @@ export const DELETE = withAuth(async function (req, { params }) {
 
     return NextResponse.json({ message: "Message deleted" });
   } catch (error) {
-    return NextResponse.json({ message: "Error deleting message", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting message" }, { status: 500 });
   }
 });

@@ -30,7 +30,7 @@ export const GET = withSubscription(async function (req, { params }) {
 
     return NextResponse.json({ items, totalCost, byStatus });
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching FFE items", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching FFE items" }, { status: 500 });
   }
 }, "interior");
 
@@ -77,6 +77,6 @@ export const POST = withSubscription(async function (req, { params }) {
     await item.save();
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating FFE item", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating FFE item" }, { status: 500 });
   }
 }, "interior");

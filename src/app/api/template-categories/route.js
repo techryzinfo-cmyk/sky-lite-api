@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import TemplateCategory from "@/models/TemplateCategory";
 import { withAuth, withRole } from "@/lib/middleware";
@@ -13,7 +13,7 @@ export const GET = withAuth(async function (req) {
     return NextResponse.json(categories);
   } catch (error) {
     return NextResponse.json(
-      { message: "Error fetching categories", error: error.message },
+      { message: "Error fetching categories" },
       { status: 500 }
     );
   }
@@ -58,7 +58,7 @@ export const POST = withRole(async function (req) {
       return NextResponse.json({ message: messages.join(", ") }, { status: 400 });
     }
     return NextResponse.json(
-      { message: "Error creating category", error: error.message },
+      { message: "Error creating category" },
       { status: 500 }
     );
   }

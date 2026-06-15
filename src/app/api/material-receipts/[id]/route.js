@@ -62,7 +62,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     });
   } catch (error) {
     console.error("Update material receipt error:", error);
-    return NextResponse.json({ message: "Error updating material receipt", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error updating material receipt" }, { status: 500 });
   }
 });
 

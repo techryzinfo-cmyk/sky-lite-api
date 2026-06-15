@@ -15,7 +15,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     if (body.assignedTo === "") body.assignedTo = null;
     await dbConnect();
 
-    const issue = await Issue.findById(id);
+    const issue = await Issue.findOne({ _id: id, organization: req.user.organizationId });
     if (!issue) {
       return NextResponse.json({ message: "Issue not found" }, { status: 404 });
     }
@@ -95,7 +95,7 @@ export const DELETE = withAuth(async function (req, { params }) {
     const { id } = await params;
     await dbConnect();
 
-    const issue = await Issue.findById(id);
+    const issue = await Issue.findOne({ _id: id, organization: req.user.organizationId });
     if (!issue) {
       return NextResponse.json({ message: "Issue not found" }, { status: 404 });
     }

@@ -58,6 +58,6 @@ export const POST = withAuth(async function (req, { params }) {
     });
   } catch (error) {
     console.error("Bulk action error:", error);
-    return NextResponse.json({ message: "Error processing bulk action", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error processing bulk action" }, { status: 500 });
   }
 });

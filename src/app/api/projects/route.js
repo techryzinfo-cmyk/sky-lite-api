@@ -56,17 +56,42 @@ export const GET = withAuth(async function (req) {
       surveyRejectMap[s.project.toString()] = s.rejectionReason;
     });
 
+    // Calculate unread chat messages for each project
+    const ChatMessage = require("@/models/ChatMessage").default || require("@/models/ChatMessage");
+    const mongoose = require("mongoose");
+    const userIdObj = new mongoose.Types.ObjectId(req.user.id);
+    const unreadMessages = await ChatMessage.aggregate([
+      { 
+        $match: { 
+          project: { $in: projectIds },
+          sender: { $ne: userIdObj },
+          readBy: { $ne: userIdObj }
+        }
+      },
+      {
+        $group: {
+          _id: "$project",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    const unreadMap = {};
+    unreadMessages.forEach(um => {
+      unreadMap[um._id.toString()] = um.count;
+    });
+
     const result = projects.map((p) => ({
       ...p.toObject(),
       hasPendingPlans: pendingSet.has(p._id.toString()),
       surveyStatus: surveyStatusMap[p._id.toString()] || null,
       surveyRejectionReason: surveyRejectMap[p._id.toString()] || null,
+      unreadMessageCount: unreadMap[p._id.toString()] || 0,
     }));
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("GET /api/projects error:", error);
-    return NextResponse.json({ message: "Error fetching projects", error: error.message, stack: error.stack }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching projects" }, { status: 500 });
   }
 });
 
@@ -143,6 +168,6 @@ export const POST = withAuth(async function (req) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating project", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error creating project" }, { status: 500 });
   }
 });

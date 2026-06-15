@@ -4,6 +4,7 @@ import Risk from "@/models/Risk";
 import Project from "@/models/Project";
 import Notification from "@/models/Notification";
 import User from "@/models/User";
+import Role from "@/models/Role";
 import { withAuth } from "@/lib/middleware";
 import { emitToProject, emitToUser } from "@/lib/socket-server";
 import { recordAudit } from "@/lib/auditHelper";
@@ -50,9 +51,15 @@ export const POST = withAuth(async function (req, { params }) {
       const memberIds = project.members.map(m => m._id.toString());
       
       // Get all Admins/SuperAdmins of the organization too
+      const adminRoles = await Role.find({
+        organization: req.user.organizationId,
+        name: { $in: ['Admin', 'SuperAdmin'] }
+      });
+      const adminRoleIds = adminRoles.map(r => r._id);
+
       const admins = await User.find({ 
         organization: req.user.organizationId, 
-        role: { $in: ['Admin', 'SuperAdmin'] } 
+        role: { $in: adminRoleIds } 
       });
       const adminIds = admins.map(a => a._id.toString());
 

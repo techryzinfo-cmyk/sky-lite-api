@@ -15,8 +15,8 @@ export const GET = withAuth(async function (req, { params }) {
     await dbConnect();
 
     const issues = await Issue.find({ project: id })
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email')
+      .populate('createdBy', 'name email __enc_name')
+      .populate('assignedTo', 'name email __enc_name')
       .sort({ createdAt: -1 });
 
     return NextResponse.json(issues);

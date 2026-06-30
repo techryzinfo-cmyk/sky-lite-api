@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Template from "@/models/Template";
 import { withAuth } from "@/lib/middleware";

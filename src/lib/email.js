@@ -23,7 +23,7 @@ function getTransporter() {
  * Send an email. Fires-and-forgets so it never blocks an API response.
  * Logs the error if sending fails — never throws.
  */
-export async function sendEmail({ to, subject, html }) {
+export async function sendEmail({ to, subject, html, attachments = [] }) {
   if (!process.env.SMTP_USER) {
     console.warn("[email] SMTP_USER not set — email skipped:", subject);
     return;
@@ -36,6 +36,7 @@ export async function sendEmail({ to, subject, html }) {
       to,
       subject,
       html,
+      attachments,
     });
     console.log(`[email] Sent "${subject}" → ${to}`);
   } catch (err) {

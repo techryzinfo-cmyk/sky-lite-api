@@ -50,7 +50,7 @@ export const POST = withAuth(async function (req, { params }) {
     const admins = await User.find({
       organization: req.user.organizationId,
       status: "Active",
-    }).populate("role", "permissions").select("name email role");
+    }).populate("role", "permissions").select("name email role __enc_name");
 
     const adminEmails = admins.filter(u =>
       u.role?.permissions?.includes("*") || u.role?.permissions?.includes("sitesurvey:approve")
@@ -86,7 +86,7 @@ export const GET = withAuth(async function (req, { params }) {
     await dbConnect();
 
     const survey = await SiteSurvey.findOne({ project: projectId, organization: req.user.organizationId })
-      .populate("surveyor", "name email");
+      .populate("surveyor", "name email __enc_name");
 
     // Return null (not 404) so callers can distinguish "no survey yet" from a real error
     if (!survey) {

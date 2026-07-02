@@ -55,7 +55,7 @@ export const GET = withAuth(async function (req, { params }) {
 
     const users = await User.find(query)
       .populate("role", "name permissions")
-      .select("name email role projects");
+      .select("name email role projects __enc_name");
 
     // Map and format results
     const approvers = users.map(u => ({

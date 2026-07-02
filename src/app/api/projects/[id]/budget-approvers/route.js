@@ -54,7 +54,7 @@ export const GET = withAuth(async function (req, { params }) {
       ]
     })
       .populate("role", "name permissions")
-      .select("name email role");
+      .select("name email role __enc_name");
 
     const approvers = assignedUsers.map(u => ({
       _id: u._id,

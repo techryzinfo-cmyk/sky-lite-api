@@ -14,9 +14,9 @@ export const GET = withAuth(async function (req, { params }) {
     await dbConnect();
 
     const snag = await Snag.findOne({ _id: id, organization: req.user.organizationId })
-      .populate("createdBy", "name email")
-      .populate("assignedTo", "name email")
-      .populate("history.updatedBy", "name");
+      .populate("createdBy", "name email __enc_name")
+      .populate("assignedTo", "name email __enc_name")
+      .populate("history.updatedBy", "name __enc_name");
 
     if (!snag) {
       return NextResponse.json({ message: "Snag not found" }, { status: 404 });

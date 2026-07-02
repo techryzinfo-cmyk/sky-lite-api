@@ -15,8 +15,8 @@ export const GET = withAuth(async function (req, { params }) {
     await dbConnect();
 
     const risks = await Risk.find({ project: id })
-      .populate('owner', 'name email')
-      .populate('history.updatedBy', 'name')
+      .populate('owner', 'name email __enc_name')
+      .populate('history.updatedBy', 'name __enc_name')
       .sort({ createdAt: -1 });
 
     return NextResponse.json(risks);

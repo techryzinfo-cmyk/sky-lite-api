@@ -12,7 +12,7 @@ export const GET = withAuth(async function (req, { params }) {
     let matrix = await EscalationMatrix.findOne({ project: id })
       .populate({ 
         path: 'levels.user', 
-        select: 'name email phoneNumber role',
+        select: 'name email phoneNumber role __enc_name __enc_phoneNumber',
         populate: { path: 'role', select: 'name' }
       });
 
@@ -41,11 +41,16 @@ export const POST = withAuth(async function (req, { params }) {
     const body = await req.json();
     await dbConnect();
 
+    const sanitizedLevels = body.levels?.map(lvl => ({
+      ...lvl,
+      user: lvl.user?._id || lvl.user || null
+    })) || [];
+
     const matrix = await EscalationMatrix.findOneAndUpdate(
       { project: id },
       { 
         $set: {
-          ...body, 
+          levels: sanitizedLevels, 
           project: id, 
           organization: req.user.organizationId,
           updatedBy: req.user.id 
@@ -55,13 +60,20 @@ export const POST = withAuth(async function (req, { params }) {
             user: req.user.id,
             userName: req.user.name || "Admin",
             action: "MatrixUpdated",
-            details: `Escalation matrix configured with ${body.levels?.length || 0} levels by ${req.user.name || "Admin"}`,
+            details: `Escalation matrix configured with ${sanitizedLevels.length} levels by ${req.user.name || "Admin"}`,
             timestamp: new Date()
           }
         }
       },
       { upsert: true, returnDocument: 'after' }
     );
+
+    // Populate user details for returning JSON to avoid display issues
+    await matrix.populate({
+      path: 'levels.user',
+      select: 'name email phoneNumber role __enc_name __enc_phoneNumber',
+      populate: { path: 'role', select: 'name' }
+    });
 
     emitToProject(id, 'escalation:updated');
     return NextResponse.json(matrix);
@@ -70,3 +82,4 @@ export const POST = withAuth(async function (req, { params }) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 });
+

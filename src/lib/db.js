@@ -18,29 +18,37 @@ if (!MONGODB_URI) {
   throw new Error("❌ MONGODB_URI not defined in .env.local");
 }
 
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 async function dbConnect(retryCount = 0) {
   try {
-    // Prevent multiple connections
-    if (mongoose.connection.readyState === 1) {
-      console.log("♻️ Using existing MongoDB connection");
-      return mongoose;
+    if (cached.conn) {
+      console.log("♻️ Using cached MongoDB connection");
+      return cached.conn;
     }
 
-    console.log(`🔄 Connecting to MongoDB (${retryCount + 1}/${MAX_RETRIES})...`);
-    
-    // Log masked URI to verify it's the Atlas URL and not localhost
-    const maskedUri = MONGODB_URI.replace(/:([^@]+)@/, ":****@");
-    console.log(`📍 URI: ${maskedUri}`);
+    if (!cached.promise) {
+      console.log(`🔄 Connecting to MongoDB (${retryCount + 1}/${MAX_RETRIES})...`);
+      const maskedUri = MONGODB_URI.replace(/:([^@]+)@/, ":****@");
+      console.log(`📍 URI: ${maskedUri}`);
 
-    await mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
+      cached.promise = mongoose.connect(MONGODB_URI, {
+        bufferCommands: false,
+      }).then((mongoose) => {
+        console.log("✅ MongoDB connected successfully");
+        console.log("📂 Database Name:", mongoose.connection.name);
+        return mongoose;
+      });
+    }
 
-    console.log("✅ MongoDB connected successfully");
-    console.log("📂 Database Name:", mongoose.connection.name);
-
-    return mongoose;
+    cached.conn = await cached.promise;
+    return cached.conn;
   } catch (error) {
+    cached.promise = null;
     console.error("❌ MongoDB connection error:", error.message);
 
     if (retryCount < MAX_RETRIES - 1) {

@@ -15,7 +15,8 @@ export const GET = withAuth(async function (req, { params }) {
     console.log("id", id)
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId })
       .populate({ path: "createdBy", populate: { path: "role" } })
-      .populate({ path: "members", populate: { path: "role" } })
+      .populate({ path: "members.user" })
+      .populate({ path: "members.role" })
       .populate({ path: "siteSurveyor", populate: { path: "role" } })
       .populate({ path: "snaggedBy", populate: { path: "role" } })
       .populate({ path: "handoverApprover", populate: { path: "role" } });

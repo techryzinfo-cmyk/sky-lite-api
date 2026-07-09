@@ -73,8 +73,14 @@ const ProjectSchema = new mongoose.Schema(
     },
     members: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        role: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Role",
+        },
       },
     ],
     siteLocation: {

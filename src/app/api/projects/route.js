@@ -17,15 +17,17 @@ export const GET = withAuth(async function (req) {
     let query = { organization: req.user.organizationId };
 
     if (!isAdmin) {
+      const userProjectIds = (userDoc?.projects || []).map(p => p.project);
       query.$or = [
-        { _id: { $in: userDoc?.projects || [] } },
-        { members: userDoc._id },
+        { _id: { $in: userProjectIds } },
+        { "members.user": userDoc._id },
       ];
     }
 
     const projects = await Project.find(query)
       .populate("createdBy")
-      .populate("members")
+      .populate("members.user")
+      .populate("members.role")
       .populate("siteSurveyor")
       .populate("category", "name");
 
@@ -144,8 +146,8 @@ export const POST = withAuth(async function (req) {
     const project = new Project(projectData);
 
     const creatorUserId = req.user.id || createdBy;
-    if (creatorUserId && !project.members.includes(creatorUserId)) {
-      project.members.push(creatorUserId);
+    if (creatorUserId && !project.members.some(m => m.user?.toString() === creatorUserId.toString())) {
+      project.members.push({ user: creatorUserId });
     }
 
     // Add audit entry
@@ -162,7 +164,7 @@ export const POST = withAuth(async function (req) {
     // Automatically add the project to the creator's assigned projects list
     if (creatorUserId) {
       await User.findByIdAndUpdate(creatorUserId, {
-        $addToSet: { projects: project._id }
+        $addToSet: { projects: { project: project._id } }
       });
     }
 

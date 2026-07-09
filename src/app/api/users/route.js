@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { withAuth, withRole } from "@/lib/middleware";
@@ -20,26 +20,37 @@ export const GET = withAuth(async function (req) {
     
     let users = await User.find(query)
       .populate("role", "name permissions")
-      .populate("projects", "name")
+      .populate("projects.project", "name")
+      .populate("projects.role", "name")
       .select("-password");
 
     // Filter logic: Include if (in project) OR (is Admin with '*' perm)
     if (projectId) {
       users = users.filter(u => 
-        (u.projects && u.projects.some(p => p._id.toString() === projectId)) ||
+        (u.projects && u.projects.some(p => p.project && p.project._id.toString() === projectId)) ||
         (u.role && u.role.permissions.includes("*"))
       );
     }
 
     // Secondary filter by specific permission if requested
     if (permission) {
-      users = users.filter(u => 
-        u.role && (
-          u.role.permissions.includes("*") || 
-          u.role.permissions.some(p => p.startsWith(`${permission}:`)) ||
-          u.role.permissions.includes(permission)
-        )
-      );
+      users = users.filter(u => {
+        // Global admin check
+        if (u.role && (u.role.permissions.includes("*") || u.role.permissions.some(p => p.startsWith(`${permission}:`)) || u.role.permissions.includes(permission))) {
+          return true;
+        }
+        // Project role check
+        if (projectId && u.projects) {
+          const userProject = u.projects.find(p => p.project && p.project._id.toString() === projectId);
+          if (userProject && userProject.role) {
+             const projRole = userProject.role;
+             if (projRole.permissions && (projRole.permissions.includes("*") || projRole.permissions.some(p => p.startsWith(`${permission}:`)) || projRole.permissions.includes(permission))) {
+                 return true;
+             }
+          }
+        }
+        return false;
+      });
     }
 
     return NextResponse.json(users);
@@ -58,7 +69,7 @@ export const GET = withAuth(async function (req) {
 export const POST = withRole(async function (req) {
   try {
     await dbConnect();
-    const { name, email, phoneNumber, roleId, projectIds, password } = await req.json();
+    const { name, email, phoneNumber, roleId, projectIds, projects, password } = await req.json();
 
     // Check if user already exists with email
     const existingEmail = await User.findOne({ email });
@@ -79,8 +90,8 @@ export const POST = withRole(async function (req) {
       name,
       email,
       phoneNumber,
-      role: roleId,
-      projects: projectIds || [],
+      role: roleId || undefined,
+      projects: projects || (projectIds ? projectIds.map(id => ({ project: id })) : []),
       password: password || "welcome123",
       status: "Active",
       organization: req.user.organizationId,
@@ -112,7 +123,7 @@ export const POST = withRole(async function (req) {
         email,
         password: plainPassword,
         role: result.role?.name || "Team Member",
-        projects: (result.projects || []).map(p => p.name),
+        projects: (result.projects || []).map(p => p.project?.name).filter(Boolean),
       }),
     });
 

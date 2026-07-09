@@ -32,6 +32,7 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",
       index: true,
+      required: false, // Optional, since regular users will only have project-level roles
     },
     organization: {
       type: mongoose.Schema.Types.ObjectId,
@@ -41,8 +42,14 @@ const UserSchema = new mongoose.Schema(
     },
     projects: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Project",
+        project: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Project",
+        },
+        role: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Role",
+        },
       },
     ],
     status: {

@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { verifyAccessToken } from "./auth";
 import dbConnect from "./db";
 import User from "@/models/User";
@@ -57,13 +57,33 @@ export const withPermission = (handler, permission) => {
     if (req.user.role === "Admin") return handler(req, ...args);
     try {
       await dbConnect();
-      const userWithRole = await User.findById(req.user.id).populate("role").select("role");
-      const perms = userWithRole?.role?.permissions || [];
+      const userWithRole = await User.findById(req.user.id)
+        .populate("role")
+        .populate("projects.role")
+        .select("role projects");
+        
+      let perms = userWithRole?.role?.permissions || [];
+      
+      // If global perms don't cover it, check project-specific perms if applicable
+      if (!perms.includes("*") && !perms.includes(permission)) {
+        const url = req.nextUrl.pathname;
+        const projectMatch = url.match(/\/api\/projects\/([^\/]+)/);
+        if (projectMatch && projectMatch[1]) {
+           const projectId = projectMatch[1];
+           const projectAssignment = userWithRole.projects?.find(p => p.project.toString() === projectId);
+           if (projectAssignment && projectAssignment.role) {
+             const projPerms = projectAssignment.role.permissions || [];
+             perms = [...perms, ...projPerms];
+           }
+        }
+      }
+
       if (!perms.includes("*") && !perms.includes(permission)) {
         return NextResponse.json({ message: "Forbidden: Insufficient permissions" }, { status: 403 });
       }
       return handler(req, ...args);
     } catch (error) {
+      console.log('Permission Check Error:', error);
       return NextResponse.json({ message: "Permission check error" }, { status: 500 });
     }
   });

@@ -13,7 +13,7 @@ export const PATCH = withRole(async function (req, { params }) {
     const { id } = await params;
     await dbConnect();
     
-    const { name, email, phoneNumber, roleId, projectIds, status } = await req.json();
+    const { name, email, phoneNumber, roleId, projectIds, projects, status } = await req.json();
 
     const user = await User.findOne({ _id: id, organization: req.user.organizationId });
     if (!user) {
@@ -40,8 +40,10 @@ export const PATCH = withRole(async function (req, { params }) {
     if (name) user.name = name;
     if (email) user.email = email;
     if (phoneNumber) user.phoneNumber = phoneNumber;
-    if (roleId) user.role = roleId;
-    if (projectIds) user.projects = projectIds;
+    if (roleId !== undefined) user.role = roleId || undefined;
+    if (projects || projectIds) {
+      user.projects = projects || (projectIds ? projectIds.map(pid => ({ project: pid })) : []);
+    }
     if (status) user.status = status;
 
     // Add audit entry
@@ -57,7 +59,8 @@ export const PATCH = withRole(async function (req, { params }) {
 
     const updatedUser = await User.findById(id)
       .populate("role", "name")
-      .populate("projects", "name");
+      .populate("projects.project", "name")
+      .populate("projects.role", "name");
 
     return NextResponse.json(updatedUser);
   } catch (error) {

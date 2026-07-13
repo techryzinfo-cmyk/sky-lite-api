@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
@@ -50,6 +50,124 @@ export async function POST(req) {
       isSystemRole: true,
       organization: org._id,
     });
+
+    const defaultRoles = [
+      {
+        name: "Project Manager",
+        permissions: [
+          "project:view", "project:create", "project:update",
+          "team:view", "team:assign",
+          "templates:view",
+          "plans:view", "plans:create", "plans:update", "plans:approve", "plans:delete",
+          "annotations:view", "annotations:update",
+          "documents:view", "documents:create", "documents:update",
+          "boq:view", "boq:create", "boq:update", "boq:import", "boq:approve", "boq:reject",
+          "budget:view", "budget:request",
+          "milestone:view", "milestone:create", "milestone:update", "milestone:assign", "milestone:complete",
+          "workprogress:view", "workprogress:create",
+          "materials:view", "material-request:view", "material-request:create", "material-request:approve",
+          "risks:view", "risks:create", "risks:update",
+          "snags:view", "snags:create", "snags:update", "snags:close",
+          "sitesurvey:view",
+          "attendance:view", "attendance:report:view",
+          "handover:view", "handover:request",
+          "ffe:view", "ffe:create", "ffe:update",
+          "rooms:view", "rooms:create", "rooms:update",
+          "reports:view", "chat:message"
+        ],
+        isSystemRole: false,
+        organization: org._id,
+      },
+      {
+        name: "Finance Manager",
+        permissions: [
+          "project:view",
+          "boq:view",
+          "budget:view", "budget:request",
+          "transactions:view", "transactions:create", "transactions:update",
+          "materials:view",
+          "material-purchase:view", "material-purchase:create", "material-purchase:update",
+          "material-receipt:view", "material-receipt:create", "material-receipt:update",
+          "material-usage:view",
+          "reports:view",
+          "chat:message"
+        ],
+        description: "Finance records and audits money. It does not approve the homeowner’s budget decisions by default.",
+        isSystemRole: false,
+        organization: org._id,
+      },
+      {
+        name: "Homeowner",
+        permissions: [
+          "project:view",
+          "plans:view", "documents:view",
+          "boq:view",
+          "milestone:view", "workprogress:view",
+          "budget:view", "budget:approve", "budget:reject",
+          "snags:view", "snags:create", "snags:close",
+          "handover:view", "handover:approve", "handover:reject",
+          "warranty:view", "warranty:create",
+          "ffe:view",
+          "reports:view",
+          "chat:message"
+        ],
+        description: "The homeowner can approve/reject only budget requests explicitly sent to them for their assigned project.",
+        isSystemRole: false,
+        organization: org._id,
+      },
+      {
+        name: "Site Supervisor",
+        permissions: [
+          "project:view",
+          "plans:view", "documents:view",
+          "annotations:view", "annotations:update",
+          "milestone:view", "milestone:create", "milestone:update", "milestone:assign", "milestone:complete",
+          "workprogress:view", "workprogress:create",
+          "materials:view", "material-request:view", "material-request:create", "material-request:approve",
+          "material-usage:view", "material-usage:create",
+          "snags:view", "snags:create", "snags:update", "snags:resolve",
+          "risks:view", "risks:create", "risks:update",
+          "attendance:checkin", "attendance:checkout",
+          "attendance:view", "attendance:manage", "attendance:report:view",
+          "rooms:view", "rooms:update",
+          "chat:message"
+        ],
+        description: "Labour-attendance manager: sees worker attendance, resolves late/absent/half-day corrections, assigns work, and manages daily site execution.",
+        isSystemRole: false,
+        organization: org._id,
+      },
+      {
+        name: "Surveyor",
+        permissions: [
+          "project:view",
+          "plans:view", "documents:view",
+          "sitesurvey:view", "sitesurvey:create", "sitesurvey:update", "sitesurvey:submit",
+          "budget:request",
+          "attendance:checkin", "attendance:checkout",
+          "chat:message"
+        ],
+        description: "Can submit findings and request a budget revision, but cannot approve the survey or the budget.",
+        isSystemRole: false,
+        organization: org._id,
+      },
+      {
+        name: "Worker",
+        permissions: [
+          "project:view",
+          "plans:view",
+          "milestone:view", "milestone:complete",
+          "workprogress:create",
+          "materials:view", "material-usage:create",
+          "snags:view", "snags:create",
+          "attendance:checkin", "attendance:checkout",
+          "chat:message"
+        ],
+        isSystemRole: false,
+        organization: org._id,
+      }
+    ];
+
+    await Role.insertMany(defaultRoles);
 
     // 3. Create user with org and role assigned
     // Password from OtpRegistration is already bcrypt-hashed (hashed at registration time).

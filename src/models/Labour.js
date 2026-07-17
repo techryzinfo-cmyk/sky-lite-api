@@ -26,8 +26,8 @@ const LabourSchema = new mongoose.Schema(
     },
     paymentCycle: {
       type: String,
-      enum: ["Daily", "Monthly"],
-      required: true,
+      enum: ["Monthly"],
+      default: "Monthly",
     },
     wageAmount: {
       type: Number,

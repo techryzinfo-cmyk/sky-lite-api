@@ -34,9 +34,10 @@ export const POST = withRole(async function (req) {
       return NextResponse.json({ message: "User already has an attendance record for this date." }, { status: 400 });
     }
 
-    // Default to a standard 8-hour shift for manual overrides
-    const checkInTime = new Date(`${date}T09:00:00.000Z`);
-    const checkOutTime = new Date(`${date}T17:00:00.000Z`);
+    // Use the current time for manual overrides
+    const now = new Date();
+    const checkInTime = new Date(date);
+    checkInTime.setUTCHours(now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
 
     const attendance = new Attendance({
       organization: req.user.organizationId,
@@ -44,11 +45,9 @@ export const POST = withRole(async function (req) {
       user: userId,
       attendanceDate: date,
       checkInTime,
-      checkOutTime,
       status: "Present",
       source: "Mobile",
       notes: "Manual Override by Admin",
-      totalWorkHours: 8,
       siteDistanceInMeters: 0,
       withinAllowedRadius: true
     });

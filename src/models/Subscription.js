@@ -112,5 +112,5 @@ SubscriptionSchema.pre("save", function () {
   }
 });
 
-delete mongoose.models.Subscription;
+
 export default mongoose.models.Subscription || mongoose.model("Subscription", SubscriptionSchema);

@@ -53,5 +53,5 @@ const RoleSchema = new mongoose.Schema(
 );
 
 RoleSchema.index({ name: 1, organization: 1 }, { unique: true });
-delete mongoose.models.Role;
+
 export default mongoose.models.Role || mongoose.model("Role", RoleSchema);

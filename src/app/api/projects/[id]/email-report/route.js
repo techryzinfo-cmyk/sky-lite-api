@@ -105,15 +105,27 @@ export const POST = withAuth(async function (req, { params }) {
           <tr>
             <th>Milestone</th>
             <th>Task Title</th>
+            <th>Start Date</th>
+            <th>End Date</th>
             <th>Completion Date</th>
+            <th>Created By</th>
+            <th>Completed By</th>
           </tr>
         </thead>
         <tbody>`;
       allCompletedTasks.forEach(t => {
+        const startStr = t.startDate ? new Date(t.startDate).toLocaleDateString() : 'N/A';
+        const endStr = t.endDate ? new Date(t.endDate).toLocaleDateString() : 'N/A';
+        const createdByStr = t.createdByName || 'Unknown';
+        const completedByStr = t.completedByName || 'Unknown';
         tasksHTML += `<tr>
           <td>${t.milestoneName}</td>
           <td>${t.title}</td>
+          <td>${startStr}</td>
+          <td>${endStr}</td>
           <td>${t.completedAtDate.toLocaleDateString()}</td>
+          <td>${createdByStr}</td>
+          <td>${completedByStr}</td>
         </tr>`;
       });
       tasksHTML += `</tbody></table>`;

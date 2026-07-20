@@ -6,6 +6,7 @@ import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
 import { sendEmail } from "@/lib/email";
 import { documentDecisionEmail } from "@/lib/emailTemplates";
+import RiskEngine from "@/lib/riskEngine";
 
 /**
  * PATCH /api/projects/:id/documents/:docId/action
@@ -63,6 +64,23 @@ export const PATCH = withAuth(async function (req, { params }) {
     });
 
     await project.save();
+
+    // Auto-generate Compliance Risk if document is rejected
+    if (action === "Rejected") {
+      await RiskEngine.evaluateAndCreateRisk({
+        projectId: id,
+        organizationId: req.user.organizationId,
+        user: req.user,
+        sourceType: 'Document',
+        sourceId: document._id,
+        sourceName: document.name,
+        title: `Compliance Risk: ${document.name} Rejected`,
+        category: 'Legal',
+        description: `Auto-generated risk: The compliance document "${document.name}" was rejected by ${req.user.name || "Admin"}. Immediate action required.`,
+        impact: 'High',
+        probability: 'High'
+      }).catch(err => console.error("Risk auto-gen failed for document:", err));
+    }
 
     // Notify the document uploader of the decision
     const uploaderUserId = document.uploadedBy?.user;

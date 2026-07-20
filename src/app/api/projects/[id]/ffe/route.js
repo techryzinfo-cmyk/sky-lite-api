@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import FFEItem from "@/models/FFEItem";
 import Project from "@/models/Project";
-import { withSubscription } from "@/lib/middleware";
+import { withSubscription, withPermission } from "@/lib/middleware";
 
 // GET /api/projects/[id]/ffe
 // Optional query: ?room=<roomId>  to filter by room
-export const GET = withSubscription(async function (req, { params }) {
+export const GET = withSubscription(withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -32,10 +32,10 @@ export const GET = withSubscription(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error fetching FFE items" }, { status: 500 });
   }
-}, "interior");
+}, "interior"), "ffe:view");
 
 // POST /api/projects/[id]/ffe
-export const POST = withSubscription(async function (req, { params }) {
+export const POST = withSubscription(withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -79,4 +79,4 @@ export const POST = withSubscription(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error creating FFE item" }, { status: 500 });
   }
-}, "interior");
+}, "interior"), "ffe:create");

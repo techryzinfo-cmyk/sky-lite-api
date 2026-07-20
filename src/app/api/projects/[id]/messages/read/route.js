@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import ChatMessage from "@/models/ChatMessage";
 import { withAuth } from "@/lib/middleware";
+import mongoose from "mongoose";
 
 export const POST = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
     const { id: projectId } = await params;
-    
-    const mongoose = require("mongoose");
     const userIdObj = new mongoose.Types.ObjectId(req.user.id);
     const projectIdObj = new mongoose.Types.ObjectId(projectId);
 

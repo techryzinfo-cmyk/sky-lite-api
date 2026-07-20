@@ -66,5 +66,5 @@ const MaterialPurchaseSchema = new mongoose.Schema(
 );
 
 
-delete mongoose.models.MaterialPurchase;
+
 export default mongoose.model("MaterialPurchase", MaterialPurchaseSchema);

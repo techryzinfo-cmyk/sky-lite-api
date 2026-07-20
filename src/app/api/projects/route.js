@@ -7,6 +7,10 @@ import User from "@/models/User";
 import Role from "@/models/Role";
 import TemplateCategory from "@/models/TemplateCategory";
 import Organization from "@/models/Organization";
+import SiteSurvey from "@/models/SiteSurvey";
+import ChatMessage from "@/models/ChatMessage";
+import mongoose from "mongoose";
+
 export const GET = withAuth(async function (req) {
   try {
     await dbConnect();
@@ -25,10 +29,10 @@ export const GET = withAuth(async function (req) {
     }
 
     const projects = await Project.find(query)
-      .populate("createdBy")
-      .populate("members.user")
+      .populate({ path: "createdBy", select: "+__enc_name +__enc_phoneNumber" })
+      .populate({ path: "members.user", select: "+__enc_name +__enc_phoneNumber" })
       .populate("members.role")
-      .populate("siteSurveyor")
+      .populate({ path: "siteSurveyor", select: "+__enc_name +__enc_phoneNumber" })
       .populate("category", "name");
 
     // Find which projects have at least one Pending plan document
@@ -49,7 +53,6 @@ export const GET = withAuth(async function (req) {
     const pendingSet = new Set(pendingFolders.map((f) => f.project.toString()));
 
     // Fetch site surveys for these projects to determine survey status
-    const SiteSurvey = require("@/models/SiteSurvey").default || require("@/models/SiteSurvey");
     const surveys = await SiteSurvey.find({ project: { $in: projectIds } }, { project: 1, status: 1, rejectionReason: 1 });
     const surveyStatusMap = {};
     const surveyRejectMap = {};
@@ -59,8 +62,6 @@ export const GET = withAuth(async function (req) {
     });
 
     // Calculate unread chat messages for each project
-    const ChatMessage = require("@/models/ChatMessage").default || require("@/models/ChatMessage");
-    const mongoose = require("mongoose");
     const userIdObj = new mongoose.Types.ObjectId(req.user.id);
     const unreadMessages = await ChatMessage.aggregate([
       { 
@@ -100,10 +101,14 @@ export const GET = withAuth(async function (req) {
 export const POST = withAuth(async function (req) {
   try {
     await dbConnect();
-    const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, budget, needSiteSurvey, currency, area, siteLocation, attendanceRadius } = await req.json();
+    const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, drawings, budget, needSiteSurvey, currency, area, areaUnit, siteLocation, attendanceRadius } = await req.json();
+
+    const count = await Project.countDocuments({ organization: req.user.organizationId });
+    const projectCode = `PRJ-${(count + 1).toString().padStart(4, '0')}`;
 
     const projectData = {
       name,
+      projectCode,
       description,
       currency: currency || "AED",
       projectType: projectType || "Construction",
@@ -126,6 +131,7 @@ export const POST = withAuth(async function (req) {
       })),
       needSiteSurvey: needSiteSurvey || false,
       area: area ? Number(area) : null,
+      areaUnit: areaUnit || "sqft",
       organization: req.user.organizationId,
       siteLocation,
       attendanceRadius: attendanceRadius ? Number(attendanceRadius) : 100,
@@ -166,6 +172,28 @@ export const POST = withAuth(async function (req) {
       await User.findByIdAndUpdate(creatorUserId, {
         $addToSet: { projects: { project: project._id } }
       });
+    }
+
+    // Automatically create Technical Drawing folder if drawings were uploaded
+    if (drawings && drawings.length > 0) {
+      const technicalDrawingFolder = new PlanFolder({
+        name: "Technical Drawing",
+        project: project._id,
+        documents: drawings.map(d => ({
+          name: d.name,
+          versions: [{
+            url: d.url,
+            name: d.name,
+            versionNumber: 1,
+            mimeType: d.mimeType,
+            size: d.size,
+            uploadedBy: req.user.id || createdBy,
+            approvalStatus: "Approved"
+          }]
+        })),
+        createdBy: req.user.id || createdBy,
+      });
+      await technicalDrawingFolder.save();
     }
 
     return NextResponse.json(project, { status: 201 });

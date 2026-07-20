@@ -36,11 +36,15 @@ export const POST = withAuth(async function (req, { params }) {
       ...body,
       project: id,
       organization: req.user.organizationId,
-      owner: body.owner || req.user.id
+      owner: body.owner || null
     });
 
     // Record audit trail in Risk document
-    await recordAudit(newRisk, req.user, "Create", "Initial risk identification");
+    const auditDetails = body.sourceType && body.sourceType !== 'Manual' 
+      ? `Auto-generated from ${body.sourceType}: ${body.sourceName || body.sourceId}`
+      : "Initial risk identification";
+      
+    await recordAudit(newRisk, req.user, "Create", auditDetails);
 
     // Record audit trail in project
     const project = await Project.findById(id).populate('members');

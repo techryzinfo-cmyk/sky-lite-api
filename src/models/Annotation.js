@@ -73,5 +73,5 @@ const AnnotationSchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.Annotation;
+
 export default mongoose.models.Annotation || mongoose.model("Annotation", AnnotationSchema);

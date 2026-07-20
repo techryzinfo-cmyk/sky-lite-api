@@ -41,7 +41,7 @@ const BOQItemSchema = new mongoose.Schema({
 });
 
 
-delete mongoose.models.BOQ;
+
 const BOQ = mongoose.models.BOQ || mongoose.model("BOQ", BOQItemSchema);
 
 export default BOQ;

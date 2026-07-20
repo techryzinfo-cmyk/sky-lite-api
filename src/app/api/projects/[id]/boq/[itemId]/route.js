@@ -4,6 +4,7 @@ import Project from "@/models/Project";
 import BOQ from "@/models/BOQ";
 import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
+import RiskEngine from "@/lib/riskEngine";
 
 /**
  * PATCH /api/projects/:id/boq/:itemId
@@ -100,6 +101,26 @@ export const PATCH = withAuth(async function (req, { params }) {
         details: `Updated BOQ item: ${newBOQItem.itemNumber || newBOQItem.itemDescription} (v${newBOQItem.version})`,
       });
       await project.save();
+    }
+
+    // Evaluate for Financial Risk (>10% cost increase)
+    const oldCost = item.totalCost || 0;
+    const newCost = newBOQItem.totalCost || 0;
+    if (oldCost > 0 && newCost > (oldCost * 1.10)) {
+      const percentageIncrease = (((newCost - oldCost) / oldCost) * 100).toFixed(1);
+      await RiskEngine.evaluateAndCreateRisk({
+        projectId: id,
+        organizationId: req.user.organizationId,
+        user: req.user,
+        sourceType: 'BOQ',
+        sourceId: newBOQItem.historyId,
+        sourceName: newBOQItem.itemDescription,
+        title: `Cost Escalation Risk: ${newBOQItem.itemDescription}`,
+        category: 'Financial',
+        description: `Auto-generated risk: BOQ item ${newBOQItem.itemNumber || newBOQItem.itemDescription} cost increased by ${percentageIncrease}% (from ${oldCost} to ${newCost}).`,
+        impact: 'High',
+        probability: 'High'
+      }).catch(err => console.error("Risk auto-gen failed for BOQ:", err));
     }
 
     // emitToProject(id, 'boq:updated');

@@ -84,5 +84,5 @@ const PlanFolderSchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.PlanFolder;
+
 export default mongoose.models.PlanFolder || mongoose.model("PlanFolder", PlanFolderSchema);

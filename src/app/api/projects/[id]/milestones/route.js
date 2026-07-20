@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Milestone from "@/models/Milestone";
-import { withAuth } from "@/lib/middleware";
+import { withPermission } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
 
-export const GET = withAuth(async function (req, { params }) {
+export const GET = withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -18,9 +18,9 @@ export const GET = withAuth(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error fetching milestones" }, { status: 500 });
   }
-});
+}, "tasks:view");
 
-export const POST = withAuth(async function (req, { params }) {
+export const POST = withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -34,7 +34,11 @@ export const POST = withAuth(async function (req, { params }) {
       project: id,
       organization: req.user.organizationId,
       createdBy: req.user.id,
-      tasks: tasks || [],
+      tasks: (tasks || []).map(t => ({
+        ...t,
+        createdBy: req.user.id,
+        createdByName: req.user.name,
+      })),
     };
 
     const milestone = new Milestone(milestoneData);
@@ -59,4 +63,4 @@ export const POST = withAuth(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error creating milestone" }, { status: 500 });
   }
-});
+}, "tasks:create");

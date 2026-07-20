@@ -35,16 +35,30 @@ export const GET = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
+    const allMemberUserIds = project.members.map(m => m.user);
+    const memberUsersWithApproverRole = project.members
+      .filter(m => approverRoleIds.some(rId => rId.toString() === m.role?.toString()))
+      .map(m => m.user);
+
     // 3. Find users in the organization who:
-    //    - Have an approver role, AND
-    //    - (Are assigned to this project OR are Organization Admins)
+    //    - Have an approver role globally or project-specifically
     const query = {
       organization: req.user.organizationId,
-      role: { $in: approverRoleIds },
       status: "Active",
       $or: [
-        { projects: id },                 // Assigned via User.projects
-        { _id: { $in: project.members } } // Assigned via Project.members
+        {
+          role: { $in: approverRoleIds },
+          $or: [
+            { "projects.project": id },
+            { _id: { $in: allMemberUserIds } }
+          ]
+        },
+        {
+          projects: {
+            $elemMatch: { project: id, role: { $in: approverRoleIds } }
+          }
+        },
+        { _id: { $in: memberUsersWithApproverRole } }
       ]
     };
 

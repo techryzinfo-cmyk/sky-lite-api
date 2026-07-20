@@ -46,6 +46,7 @@ export const POST = withAuth(async function (req, { params }) {
 
     await project.save();
 
+    /* 
     // Email all org admins about the new survey submission
     const admins = await User.find({
       organization: req.user.organizationId,
@@ -67,6 +68,7 @@ export const POST = withAuth(async function (req, { params }) {
         }),
       });
     }
+    */
 
     emitToProject(projectId, 'survey:updated');
     return NextResponse.json(newSurvey, { status: 201 });
@@ -169,6 +171,7 @@ export const PATCH = withAuth(async function (req, { params }) {
     await survey.save();
     await project.save();
 
+    /*
     // Email the surveyor about the admin's decision
     const surveyor = await User.findById(survey.surveyor).select("name email");
     if (surveyor?.email) {
@@ -184,6 +187,7 @@ export const PATCH = withAuth(async function (req, { params }) {
         }),
       });
     }
+    */
 
     emitToProject(projectId, 'survey:updated');
     return NextResponse.json(survey);

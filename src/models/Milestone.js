@@ -50,6 +50,10 @@ const MilestoneSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        createdByName: { type: String },
+        completedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        completedByName: { type: String },
         proofImage: {
           url: String,
           uploadedAt: Date
@@ -90,6 +94,5 @@ const MilestoneSchema = new mongoose.Schema(
 );
 
 // Delete existing model if it exists to prevent OverwriteModelError in Next.js HMR
-delete mongoose.models.Milestone;
-
+// delete mongoose.models.Milestone;
 export default mongoose.models.Milestone || mongoose.model("Milestone", MilestoneSchema);

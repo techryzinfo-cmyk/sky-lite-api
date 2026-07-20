@@ -16,9 +16,10 @@ export const GET = withAuth(async function (req) {
 
     let projectQuery = { organization: orgId };
     if (!isAdmin) {
+      const userProjectIds = (userDoc?.projects || []).map(p => p.project);
       projectQuery.$or = [
-        { _id: { $in: userDoc?.projects || [] } },
-        { members: userDoc._id },
+        { _id: { $in: userProjectIds } },
+        { "members.user": userDoc._id },
       ];
     }
 

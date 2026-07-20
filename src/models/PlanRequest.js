@@ -39,5 +39,5 @@ const PlanRequestSchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.PlanRequest;
+
 export default mongoose.models.PlanRequest || mongoose.model("PlanRequest", PlanRequestSchema);

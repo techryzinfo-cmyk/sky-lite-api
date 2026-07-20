@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import ChatMessage from "@/models/ChatMessage";
 import { withAuth } from "@/lib/middleware";
-import { emitToProject } from "@/lib/socket-server";
-
+import { emitToProject, emitToUser } from "@/lib/socket-server";
+import Project from "@/models/Project";
+import User from "@/models/User";
 export const GET = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
@@ -55,8 +56,6 @@ export const POST = withAuth(async function (req, { params }) {
     emitToProject(projectId, 'chat:message', message);
 
     // Also emit to all project members so their dashboards can update
-    const Project = require("@/models/Project").default || require("@/models/Project");
-    const { emitToUser } = require("@/lib/socket-server");
     const proj = await Project.findById(projectId).select("name members createdBy");
     if (proj) {
       const allMembers = new Set([
@@ -70,7 +69,6 @@ export const POST = withAuth(async function (req, { params }) {
       });
 
       // Fetch user objects to get push tokens
-      const User = require("@/models/User").default || require("@/models/User");
       const users = await User.find({ 
         _id: { $in: Array.from(allMembers) },
         _id: { $ne: req.user.id }

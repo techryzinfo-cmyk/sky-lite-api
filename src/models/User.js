@@ -121,5 +121,5 @@ UserSchema.plugin(mongooseFieldEncryption.fieldEncryption, {
   secret: process.env.ENCRYPTION_SECRET,
 });
 
-delete mongoose.models.User;
+
 export default mongoose.models.User || mongoose.model("User", UserSchema);

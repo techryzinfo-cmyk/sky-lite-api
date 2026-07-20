@@ -39,5 +39,5 @@ const OtpRegistrationSchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.OtpRegistration;
+
 export default mongoose.models.OtpRegistration || mongoose.model("OtpRegistration", OtpRegistrationSchema);

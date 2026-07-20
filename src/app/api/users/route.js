@@ -21,9 +21,9 @@ export const GET = withAuth(async function (req) {
     let users = await User.find(query)
       .populate("role", "name permissions")
       .populate("projects.project", "name")
-      .populate("projects.role", "name")
+      .populate("projects.role", "name permissions")
       .select("-password");
-
+  
     // Filter logic: Include if (in project) OR (is Admin with '*' perm)
     if (projectId) {
       users = users.filter(u => 
@@ -31,7 +31,7 @@ export const GET = withAuth(async function (req) {
         (u.role && u.role.permissions.includes("*"))
       );
     }
-
+ 
     // Secondary filter by specific permission if requested
     if (permission) {
       users = users.filter(u => {
@@ -44,7 +44,9 @@ export const GET = withAuth(async function (req) {
           const userProject = u.projects.find(p => p.project && p.project._id.toString() === projectId);
           if (userProject && userProject.role) {
              const projRole = userProject.role;
-             if (projRole.permissions && (projRole.permissions.includes("*") || projRole.permissions.some(p => p.startsWith(`${permission}:`)) || projRole.permissions.includes(permission))) {
+             const hasPerm = projRole.permissions && (projRole.permissions.includes("*") || projRole.permissions.some(p => p.startsWith(`${permission}:`)) || projRole.permissions.includes(permission));
+             console.log(`Checking project role permissions for user ${u.email}:`, projRole.permissions, `hasPerm:`, hasPerm);
+             if (hasPerm) {
                  return true;
              }
           }
@@ -52,6 +54,7 @@ export const GET = withAuth(async function (req) {
         return false;
       });
     }
+     
 
     return NextResponse.json(users);
   } catch (error) {

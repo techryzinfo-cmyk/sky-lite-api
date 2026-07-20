@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Room from "@/models/Room";
 import Project from "@/models/Project";
-import { withSubscription } from "@/lib/middleware";
+import { withSubscription, withPermission } from "@/lib/middleware";
 
 const GOLD_ROOM_LIMIT = 20;
 
 // GET /api/projects/[id]/rooms
-export const GET = withSubscription(async function (req, { params }) {
+export const GET = withSubscription(withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -20,10 +20,10 @@ export const GET = withSubscription(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error fetching rooms" }, { status: 500 });
   }
-}, "interior");
+}, "interior"), "rooms:view");
 
 // POST /api/projects/[id]/rooms
-export const POST = withSubscription(async function (req, { params }) {
+export const POST = withSubscription(withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -70,4 +70,4 @@ export const POST = withSubscription(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error creating room" }, { status: 500 });
   }
-}, "interior");
+}, "interior"), "rooms:create");

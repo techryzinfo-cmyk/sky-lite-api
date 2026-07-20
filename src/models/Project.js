@@ -7,6 +7,11 @@ const ProjectSchema = new mongoose.Schema(
       required: [true, "Please provide a project name"],
       trim: true,
     },
+    projectCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     description: {
       type: String,
       trim: true,
@@ -19,6 +24,11 @@ const ProjectSchema = new mongoose.Schema(
     area: {
       type: Number,
       default: null,
+    },
+    areaUnit: {
+      type: String,
+      enum: ["sqft", "sqm"],
+      default: "sqft",
     },
     projectType: {
       type: String,
@@ -175,5 +185,6 @@ const ProjectSchema = new mongoose.Schema(
     },
   }
 );
-delete mongoose.models.Project;
+
 export default mongoose.models.Project || mongoose.model("Project", ProjectSchema);
+   

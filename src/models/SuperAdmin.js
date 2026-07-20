@@ -45,5 +45,5 @@ SuperAdminSchema.methods.comparePassword = async function (entered) {
   return bcrypt.compare(entered, this.password);
 };
 
-delete mongoose.models.SuperAdmin;
+
 export default mongoose.models.SuperAdmin || mongoose.model("SuperAdmin", SuperAdminSchema);

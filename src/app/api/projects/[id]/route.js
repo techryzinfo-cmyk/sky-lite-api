@@ -14,12 +14,12 @@ export const GET = withAuth(async function (req, { params }) {
     await dbConnect();
     console.log("id", id)
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId })
-      .populate({ path: "createdBy", populate: { path: "role" } })
-      .populate({ path: "members.user" })
+      .populate({ path: "createdBy", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
+      .populate({ path: "members.user", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
       .populate({ path: "members.role" })
-      .populate({ path: "siteSurveyor", populate: { path: "role" } })
-      .populate({ path: "snaggedBy", populate: { path: "role" } })
-      .populate({ path: "handoverApprover", populate: { path: "role" } });
+      .populate({ path: "siteSurveyor", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
+      .populate({ path: "snaggedBy", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
+      .populate({ path: "handoverApprover", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } });
 
     if (!project) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });
@@ -37,7 +37,7 @@ export const PUT = withAuth(async function (req, { params }) {
     const { id } = await params;
     await dbConnect();
     const body = await req.json();
-    const { name, description, clientName, clientEmail, clientPhone, status, priority, members, startDate, endDate, documents, updatedBy, needSiteSurvey, siteSurveyor, newBudget, budgetReason, area, currency } = body;
+    const { name, description, clientName, clientEmail, clientPhone, status, priority, members, startDate, endDate, documents, updatedBy, needSiteSurvey, siteSurveyor, newBudget, budgetReason, area, areaUnit, currency } = body;
 
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId });
     if (!project) {
@@ -59,7 +59,9 @@ export const PUT = withAuth(async function (req, { params }) {
     if (updatedBy) project.updatedBy = updatedBy;
     if (needSiteSurvey !== undefined) project.needSiteSurvey = needSiteSurvey;
     if (siteSurveyor !== undefined) project.siteSurveyor = siteSurveyor;
+    if (siteSurveyor !== undefined) project.siteSurveyor = siteSurveyor;
     if (area !== undefined) project.area = area ? Number(area) : null;
+    if (areaUnit) project.areaUnit = areaUnit;
     if (currency) project.currency = currency;
 
     // --- BUDGET VERSIONING LOGIC ---
@@ -94,7 +96,8 @@ export const PUT = withAuth(async function (req, { params }) {
     emitToProject(id, 'project:updated');
     return NextResponse.json(project);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating project" }, { status: 500 });
+    console.error("Error updating project:", error);
+    return NextResponse.json({ message: "Error updating project", error: error.message }, { status: 500 });
   }
 });
 

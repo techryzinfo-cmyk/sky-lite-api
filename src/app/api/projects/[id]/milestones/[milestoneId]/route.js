@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Milestone from "@/models/Milestone";
-import { withAuth } from "@/lib/middleware";
+import { withPermission } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
+import RiskEngine from "@/lib/riskEngine";
 
-export const PATCH = withAuth(async function (req, { params }) {
+export const PATCH = withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id, milestoneId } = await params;
@@ -46,6 +47,53 @@ export const PATCH = withAuth(async function (req, { params }) {
             action: "TaskUpdated",
             details: `Tasks updated`,
         });
+
+        // Auto-generate Risk for any Delayed Tasks
+        const delayedTasks = updates.tasks.filter(t => t.status === 'Delayed');
+        for (const task of delayedTasks) {
+          // Prevent spamming if risk already generated (could be checked in engine, but basic protection here)
+          await RiskEngine.evaluateAndCreateRisk({
+            projectId: id,
+            organizationId: req.user.organizationId,
+            user: req.user,
+            sourceType: 'Task',
+            sourceId: task._id || milestone._id, // task might not have _id if just a subdoc without it
+            sourceName: task.title,
+            title: `Schedule Risk: ${task.title} Delayed`,
+            category: 'Logistics',
+            description: `Auto-generated risk due to delayed task in milestone ${milestone.name}.`,
+            impact: 'High',
+            probability: 'High'
+          }).catch(err => console.error("Risk auto-gen failed for task:", err));
+        }
+        // Map over incoming tasks to preserve or set user fields
+        updates.tasks = updates.tasks.map(incomingTask => {
+          const existingTask = incomingTask._id ? milestone.tasks.id(incomingTask._id) : null;
+          
+          let createdBy = existingTask && existingTask.createdBy ? existingTask.createdBy : req.user.id;
+          let createdByName = existingTask && existingTask.createdByName ? existingTask.createdByName : req.user.name;
+          
+          let completedBy = existingTask ? existingTask.completedBy : null;
+          let completedByName = existingTask ? existingTask.completedByName : null;
+
+          if (incomingTask.isCompleted && (!existingTask || !existingTask.isCompleted)) {
+            completedBy = req.user.id;
+            completedByName = req.user.name;
+            incomingTask.completedAt = new Date();
+          } else if (!incomingTask.isCompleted) {
+            completedBy = null;
+            completedByName = null;
+            incomingTask.completedAt = null;
+          }
+
+          return {
+            ...incomingTask,
+            createdBy,
+            createdByName,
+            completedBy,
+            completedByName
+          };
+        });
     }
 
     // Generic update
@@ -58,9 +106,9 @@ export const PATCH = withAuth(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error updating milestone" }, { status: 500 });
   }
-});
+}, "tasks:update");
 
-export const DELETE = withAuth(async function (req, { params }) {
+export const DELETE = withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id, milestoneId } = await params;
@@ -80,4 +128,4 @@ export const DELETE = withAuth(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error deleting milestone" }, { status: 500 });
   }
-});
+}, "tasks:delete");

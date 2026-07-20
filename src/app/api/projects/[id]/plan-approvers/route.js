@@ -33,14 +33,29 @@ export const GET = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
+    const allMemberUserIds = project.members.map(m => m.user);
+    const memberUsersWithApproverRole = project.members
+      .filter(m => approverRoleIds.some(rId => rId.toString() === m.role?.toString()))
+      .map(m => m.user);
+
     // 3. Find all users who:
-    //    - Have an approver role, AND
-    //    - Are assigned to this project via User.projects OR Project.members
+    //    - Have a global approver role AND are assigned to this project, OR
+    //    - Have a project-specific approver role
     const assignedUsers = await User.find({
-      role: { $in: approverRoleIds },
       $or: [
-        { projects: id },           // assigned via User.projects
-        { _id: { $in: project.members } } // assigned via Project.members
+        {
+          role: { $in: approverRoleIds },
+          $or: [
+            { "projects.project": id },
+            { _id: { $in: allMemberUserIds } }
+          ]
+        },
+        {
+          projects: {
+            $elemMatch: { project: id, role: { $in: approverRoleIds } }
+          }
+        },
+        { _id: { $in: memberUsersWithApproverRole } }
       ]
     })
       .populate("role", "name permissions")
@@ -52,7 +67,7 @@ export const GET = withAuth(async function (req, { params }) {
       email: u.email,
       roleName: u.role?.name || "Member",
     }));
-
+console.log(approvers);
     return NextResponse.json(approvers);
   } catch (error) {
     console.error("Plan approvers error:", error);

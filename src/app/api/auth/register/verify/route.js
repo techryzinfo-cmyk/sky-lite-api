@@ -66,7 +66,7 @@ export async function POST(req) {
           "milestone:view", "milestone:create", "milestone:update", "milestone:assign", "milestone:complete",
           "workprogress:view", "workprogress:create",
           "materials:view", "material-request:view", "material-request:create", "material-request:approve",
-          "risks:view", "risks:create", "risks:update",
+          "risks:view", "risks:create", "risks:update","risks:delete", "risks:assign",
           "snags:view", "snags:create", "snags:update", "snags:close",
           "sitesurvey:view",
           "attendance:view", "attendance:report:view",

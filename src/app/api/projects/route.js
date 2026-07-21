@@ -198,6 +198,7 @@ export const POST = withAuth(async function (req) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Error creating project" }, { status: 500 });
+    console.error("POST /api/projects error:", error);
+    return NextResponse.json({ message: "Error creating project", error: error.message, stack: error.stack }, { status: 500 });
   }
 });

@@ -9,7 +9,7 @@ const ProjectSchema = new mongoose.Schema(
     },
     projectCode: {
       type: String,
-      unique: true,
+      
       sparse: true,
     },
     description: {
@@ -185,6 +185,6 @@ const ProjectSchema = new mongoose.Schema(
     },
   }
 );
-
+delete mongoose.models.Project;
 export default mongoose.models.Project || mongoose.model("Project", ProjectSchema);
    

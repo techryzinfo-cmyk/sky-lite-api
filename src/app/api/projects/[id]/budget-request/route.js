@@ -32,7 +32,7 @@ export const POST = withAuth(async function (req, { params }) {
 
     let approverName = "Approver";
     if (approverId) {
-      const approver = await User.findById(approverId).select("name");
+      const approver = await User.findById(approverId);
       if (approver) approverName = approver.name;
     }
 

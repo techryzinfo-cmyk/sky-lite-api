@@ -7,6 +7,8 @@ import Issue from "@/models/Issue";
 import Snag from "@/models/Snag";
 import User from "@/models/User";
 import { sendEmail } from "@/lib/email";
+import puppeteerCore from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer";
 
 export const POST = withAuth(async function (req, { params }) {
@@ -301,10 +303,22 @@ export const POST = withAuth(async function (req, { params }) {
     `;
 
     // Generate PDF via Puppeteer
-    const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    });
+    let browser;
+    if (process.env.VERCEL || process.env.VERCEL_ENV) {
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
+      });
+    } else {
+      browser = await puppeteer.launch({
+        headless: "new",
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      });
+    }
+
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
     const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });

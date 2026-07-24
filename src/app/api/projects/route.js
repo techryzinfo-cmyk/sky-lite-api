@@ -29,6 +29,7 @@ export const GET = withAuth(async function (req) {
     }
 
     const projects = await Project.find(query)
+      .sort({ createdAt: -1 })
       .populate({ path: "createdBy", select: "+__enc_name +__enc_phoneNumber" })
       .populate({ path: "members.user", select: "+__enc_name +__enc_phoneNumber" })
       .populate("members.role")

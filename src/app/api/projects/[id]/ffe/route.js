@@ -32,7 +32,7 @@ export const GET = withSubscription(withPermission(async function (req, { params
   } catch (error) {
     return NextResponse.json({ message: "Error fetching FFE items" }, { status: 500 });
   }
-}, "interior"), "ffe:view");
+}, "ffe:view"), "interior");
 
 // POST /api/projects/[id]/ffe
 export const POST = withSubscription(withPermission(async function (req, { params }) {
@@ -79,4 +79,4 @@ export const POST = withSubscription(withPermission(async function (req, { param
   } catch (error) {
     return NextResponse.json({ message: "Error creating FFE item" }, { status: 500 });
   }
-}, "interior"), "ffe:create");
+}, "ffe:create"), "interior");

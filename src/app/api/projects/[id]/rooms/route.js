@@ -20,7 +20,7 @@ export const GET = withSubscription(withPermission(async function (req, { params
   } catch (error) {
     return NextResponse.json({ message: "Error fetching rooms" }, { status: 500 });
   }
-}, "interior"), "rooms:view");
+}, "rooms:view"), "interior");
 
 // POST /api/projects/[id]/rooms
 export const POST = withSubscription(withPermission(async function (req, { params }) {
@@ -70,4 +70,4 @@ export const POST = withSubscription(withPermission(async function (req, { param
   } catch (error) {
     return NextResponse.json({ message: "Error creating room" }, { status: 500 });
   }
-}, "interior"), "rooms:create");
+}, "rooms:create"), "interior");

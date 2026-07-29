@@ -30,7 +30,7 @@ export const PATCH = withSubscription(withPermission(async function (req, { para
   } catch (error) {
     return NextResponse.json({ message: "Error updating FFE item" }, { status: 500 });
   }
-}, "interior"), "ffe:update");
+}, "ffe:update"), "interior");
 
 // DELETE /api/projects/[id]/ffe/[ffeId]
 export const DELETE = withSubscription(withPermission(async function (req, { params }) {
@@ -47,4 +47,4 @@ export const DELETE = withSubscription(withPermission(async function (req, { par
   } catch (error) {
     return NextResponse.json({ message: "Error deleting FFE item" }, { status: 500 });
   }
-}, "interior"), "ffe:delete");
+}, "ffe:delete"), "interior");

@@ -7,7 +7,7 @@ import { withAuth } from "@/lib/middleware";
 export const PUT = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json({ message: "Labour ID is required" }, { status: 400 });
@@ -42,7 +42,7 @@ export const PUT = withAuth(async function (req, { params }) {
 export const DELETE = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ message: "Labour ID is required" }, { status: 400 });

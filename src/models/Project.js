@@ -129,6 +129,21 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    clientRepName: {
+      type: String,
+      trim: true,
+    },
+    handoverDate: {
+      type: Date,
+    },
+    handoverNotes: {
+      type: String,
+      trim: true,
+    },
+    handoverCertificateUrls: {
+      type: [String],
+      default: undefined,
+    },
     documents: [
       {
         url: String,

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import PlanFolder from "@/models/PlanFolder";
-import { withAuth } from "@/lib/middleware";
+import { withAuth, withPermission } from "@/lib/middleware";
 import User from "@/models/User";
 import Role from "@/models/Role";
 import TemplateCategory from "@/models/TemplateCategory";
@@ -99,7 +99,7 @@ export const GET = withAuth(async function (req) {
   }
 });
 
-export const POST = withAuth(async function (req) {
+export const POST = withPermission(async function (req) {
   try {
     await dbConnect();
     const { name, description, category, projectType, clientName, clientEmail, clientPhone, status, createdBy, members, startDate, endDate, documents, drawings, budget, needSiteSurvey, currency, area, areaUnit, siteLocation, attendanceRadius } = await req.json();
@@ -154,7 +154,14 @@ export const POST = withAuth(async function (req) {
 
     const creatorUserId = req.user.id || createdBy;
     if (creatorUserId && !project.members.some(m => m.user?.toString() === creatorUserId.toString())) {
-      project.members.push({ user: creatorUserId });
+      // Give the creator their own global role on this project's membership
+      // record. Without this, hasProjectPermission (web/mobile) treats a
+      // member with no project-specific role as having ZERO permissions —
+      // a non-Admin creator (e.g. a Project Manager) would be locked out of
+      // every granular action (view documents, rooms, etc.) on the very
+      // project they just created.
+      const creatorUser = await User.findById(creatorUserId).select("role");
+      project.members.push({ user: creatorUserId, role: creatorUser?.role || undefined });
     }
 
     // Add audit entry
@@ -202,4 +209,4 @@ export const POST = withAuth(async function (req) {
     console.error("POST /api/projects error:", error);
     return NextResponse.json({ message: "Error creating project", error: error.message, stack: error.stack }, { status: 500 });
   }
-});
+}, 'projects:create');

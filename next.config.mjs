@@ -4,7 +4,9 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/**/*': ['./node_modules/**/*.wasm', './node_modules/@sparticuz/chromium/bin/**/*']
   },
-  allowedDevOrigins: ['10.183.120.72', '192.168.1.16','192.168.1.18'],
+  // Wildcarded by /24 subnet so any device IP on these LANs is allowed
+  // without needing to add each new IP individually.
+  allowedDevOrigins: ['10.183.120.*', '192.168.1.*', '10.216.230.*'],
   async headers() {
     return [
       {

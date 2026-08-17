@@ -25,7 +25,18 @@ export const GET = withAuth(async function (req, { params }) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
-    return NextResponse.json(project);
+    // Project itself has no surveyStatus field — it lives on the separate
+    // SiteSurvey document. The list endpoint (GET /api/projects) already
+    // stitches this in; this single-project endpoint needs the same lookup,
+    // otherwise surveyStatus is always undefined here and any section-lock
+    // gate keyed on it (e.g. app screens waiting on "Approved") never clears.
+    const survey = await SiteSurvey.findOne({ project: id }, { status: 1, rejectionReason: 1 });
+
+    return NextResponse.json({
+      ...project.toObject(),
+      surveyStatus: survey?.status || null,
+      surveyRejectionReason: survey?.rejectionReason || null,
+    });
   } catch (error) {
     return NextResponse.json({ message: "Error fetching project" }, { status: 500 });
   }

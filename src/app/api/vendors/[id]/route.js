@@ -6,7 +6,7 @@ import { withAuth } from "@/lib/middleware";
 export const PUT = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
     const updateData = await req.json();
 
     const vendor = await Vendor.findOne({ _id: id, organization: req.user.organizationId });
@@ -27,7 +27,7 @@ export const PUT = withAuth(async function (req, { params }) {
 export const DELETE = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
 
     const vendor = await Vendor.findOne({ _id: id, organization: req.user.organizationId });
 

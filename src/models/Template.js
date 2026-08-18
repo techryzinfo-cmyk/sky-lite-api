@@ -17,6 +17,10 @@ const TemplateSchema = new mongoose.Schema(
       required: [true, "Please assign a category to this template"],
       index: true,
     },
+    currency: {
+      type: String,
+      default: "QAR",
+    },
     minBudget: {
       type: Number,
       default: 0,

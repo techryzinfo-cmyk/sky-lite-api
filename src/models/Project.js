@@ -19,7 +19,7 @@ const ProjectSchema = new mongoose.Schema(
     currency: {
       type: String,
       required: true,
-      default: "AED",
+      default: "QAR",
     },
     area: {
       type: Number,

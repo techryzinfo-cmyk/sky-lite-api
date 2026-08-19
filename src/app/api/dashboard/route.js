@@ -5,6 +5,7 @@ import Milestone from "@/models/Milestone";
 import Risk from "@/models/Risk";
 import { withAuth } from "@/lib/middleware";
 import User from "@/models/User";
+import Role from "@/models/Role";
 
 export const GET = withAuth(async function (req) {
   try {

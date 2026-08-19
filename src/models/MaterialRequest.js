@@ -22,7 +22,8 @@ const MaterialRequestSchema = new mongoose.Schema(
     items: [
       {
         materialId: { type: mongoose.Schema.Types.ObjectId, ref: "Material", required: true },
-        quantity: { type: Number, required: true },
+        quantity: { type: Number, required: true }, // Original requested quantity
+        approvedQuantity: { type: Number, default: 0 }, // Quantity approved by Admin
         unit: String,
       }
     ],

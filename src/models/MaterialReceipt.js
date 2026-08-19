@@ -22,6 +22,8 @@ const MaterialReceiptSchema = new mongoose.Schema(
     
     // Delivery Details
     vendorName: String,
+    vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+    linkedPurchase: { type: mongoose.Schema.Types.ObjectId, ref: "MaterialPurchase", required: true },
     challanNumber: String,
     invoiceNumber: String,
     

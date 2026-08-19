@@ -31,7 +31,7 @@ export const POST = withAuth(async function (req, { params }) {
       if (!userToAssign) continue;
 
       // Check if user is already a member
-      const isMember = project.members.some(m => m.user.toString() === uid);
+      const isMember = project.members.some(m => m.user?.toString() === uid);
       if (isMember) continue;
 
       // Add to project members
@@ -40,7 +40,7 @@ export const POST = withAuth(async function (req, { params }) {
       addedCount++;
 
       // Also update User.projects
-      const hasProject = userToAssign.projects.some(p => p.project.toString() === id);
+      const hasProject = userToAssign.projects.some(p => p.project?.toString() === id);
       if (!hasProject) {
         userToAssign.projects.push({ project: id, role: roleId });
         await userToAssign.save();

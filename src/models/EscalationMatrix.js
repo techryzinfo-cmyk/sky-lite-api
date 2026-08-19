@@ -42,5 +42,5 @@ const EscalationMatrixSchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.EscalationMatrix;
+
 export default mongoose.models.EscalationMatrix || mongoose.model("EscalationMatrix", EscalationMatrixSchema);

@@ -80,5 +80,5 @@ const SnagSchema = new mongoose.Schema(
 );
 
 // Clear model cache to prevent recompilation errors in Next.js dev mode
-delete mongoose.models.Snag;
+
 export default mongoose.models.Snag || mongoose.model("Snag", SnagSchema);

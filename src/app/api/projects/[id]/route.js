@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
-import { withAuth } from "@/lib/middleware";
+import { withAuth, withPermission } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
 import Role from "@/models/Role";
 import User from "@/models/User";
@@ -14,30 +14,41 @@ export const GET = withAuth(async function (req, { params }) {
     await dbConnect();
     console.log("id", id)
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId })
-      .populate({ path: "createdBy", populate: { path: "role" } })
-      .populate({ path: "members.user" })
+      .populate({ path: "createdBy", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
+      .populate({ path: "members.user", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
       .populate({ path: "members.role" })
-      .populate({ path: "siteSurveyor", populate: { path: "role" } })
-      .populate({ path: "snaggedBy", populate: { path: "role" } })
-      .populate({ path: "handoverApprover", populate: { path: "role" } });
+      .populate({ path: "siteSurveyor", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
+      .populate({ path: "snaggedBy", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } })
+      .populate({ path: "handoverApprover", select: "+__enc_name +__enc_phoneNumber", populate: { path: "role" } });
 
     if (!project) {
       return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
-    return NextResponse.json(project);
+    // Project itself has no surveyStatus field — it lives on the separate
+    // SiteSurvey document. The list endpoint (GET /api/projects) already
+    // stitches this in; this single-project endpoint needs the same lookup,
+    // otherwise surveyStatus is always undefined here and any section-lock
+    // gate keyed on it (e.g. app screens waiting on "Approved") never clears.
+    const survey = await SiteSurvey.findOne({ project: id }, { status: 1, rejectionReason: 1 });
+
+    return NextResponse.json({
+      ...project.toObject(),
+      surveyStatus: survey?.status || null,
+      surveyRejectionReason: survey?.rejectionReason || null,
+    });
   } catch (error) {
     return NextResponse.json({ message: "Error fetching project" }, { status: 500 });
   }
 });
 
 // UPDATE a project (Full)
-export const PUT = withAuth(async function (req, { params }) {
+export const PUT = withPermission(async function (req, { params }) {
   try {
     const { id } = await params;
     await dbConnect();
     const body = await req.json();
-    const { name, description, clientName, clientEmail, clientPhone, status, priority, members, startDate, endDate, documents, updatedBy, needSiteSurvey, siteSurveyor, newBudget, budgetReason, area, currency } = body;
+    const { name, description, clientName, clientEmail, clientPhone, status, priority, members, startDate, endDate, documents, updatedBy, needSiteSurvey, siteSurveyor, newBudget, budgetReason, area, areaUnit, currency } = body;
 
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId });
     if (!project) {
@@ -59,7 +70,9 @@ export const PUT = withAuth(async function (req, { params }) {
     if (updatedBy) project.updatedBy = updatedBy;
     if (needSiteSurvey !== undefined) project.needSiteSurvey = needSiteSurvey;
     if (siteSurveyor !== undefined) project.siteSurveyor = siteSurveyor;
+    if (siteSurveyor !== undefined) project.siteSurveyor = siteSurveyor;
     if (area !== undefined) project.area = area ? Number(area) : null;
+    if (areaUnit) project.areaUnit = areaUnit;
     if (currency) project.currency = currency;
 
     // --- BUDGET VERSIONING LOGIC ---
@@ -94,9 +107,44 @@ export const PUT = withAuth(async function (req, { params }) {
     emitToProject(id, 'project:updated');
     return NextResponse.json(project);
   } catch (error) {
-    return NextResponse.json({ message: "Error updating project" }, { status: 500 });
+    console.error("Error updating project:", error);
+    return NextResponse.json({ message: "Error updating project", error: error.message }, { status: 500 });
   }
-});
+}, 'projects:update');
+
+// This endpoint is shared by the "edit project" form AND many workflow status
+// updates (handover approval, snag audit logging, budget actions, survey
+// assignment, etc.) that are triggered by users with module-specific
+// permissions, not "projects:update". We can't gate the whole route without
+// breaking those flows, so only requests that actually touch real project
+// fields are checked against "projects:update".
+const PROJECT_EDIT_FIELDS = [
+  "name", "description", "clientName", "clientEmail", "clientPhone",
+  "startDate", "endDate", "priority", "currency", "area", "areaUnit",
+  "needSiteSurvey", "siteLocation", "attendanceRadius", "projectType",
+];
+
+// Shared check for the field-sniffing guards below: does this user hold
+// `permission` either globally or via their role on this specific project?
+async function userHasPermission(req, projectId, permission) {
+  if (req.user.role === "Admin") return true;
+  const userWithRole = await User.findById(req.user.id)
+    .populate("role")
+    .populate("projects.role")
+    .select("role projects");
+  let perms = userWithRole?.role?.permissions || [];
+  if (!perms.includes("*") && !perms.includes(permission)) {
+    const projectAssignment = userWithRole.projects?.find((p) => p.project.toString() === projectId);
+    if (projectAssignment?.role) {
+      const projPerms = projectAssignment.role.permissions || [];
+      perms = [...perms, ...projPerms];
+      if (projectAssignment.role.name === "Admin" || projectAssignment.role.isSystemRole) {
+        perms.push("*");
+      }
+    }
+  }
+  return perms.includes("*") || perms.includes(permission);
+}
 
 // PARTIAL UPDATE a project
 export const PATCH = withAuth(async function (req, { params }) {
@@ -105,6 +153,18 @@ export const PATCH = withAuth(async function (req, { params }) {
     await dbConnect();
     const body = await req.json();
     const { auditAction, auditDetails, ...updateData } = body;
+
+    const isProjectEdit = Object.keys(updateData).some((key) => PROJECT_EDIT_FIELDS.includes(key));
+    if (isProjectEdit && !(await userHasPermission(req, id, "projects:update"))) {
+      return NextResponse.json({ message: "Forbidden: Insufficient permissions" }, { status: 403 });
+    }
+
+    // Assigning/reassigning the site surveyor is a distinct, sensitive action —
+    // gate it on "sitesurvey:manage" regardless of whether other edit fields
+    // are present in the same request.
+    if (Object.prototype.hasOwnProperty.call(updateData, "siteSurveyor") && !(await userHasPermission(req, id, "sitesurvey:manage"))) {
+      return NextResponse.json({ message: "Forbidden: Insufficient permissions" }, { status: 403 });
+    }
 
     const project = await Project.findOne({ _id: id, organization: req.user.organizationId });
     if (!project) {
@@ -148,7 +208,7 @@ export const PATCH = withAuth(async function (req, { params }) {
 });
 
 // DELETE a project
-export const DELETE = withAuth(async function (req, { params }) {
+export const DELETE = withPermission(async function (req, { params }) {
   try {
     const { id } = await params;
     await dbConnect();
@@ -162,4 +222,4 @@ export const DELETE = withAuth(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error deleting project" }, { status: 500 });
   }
-});
+}, 'projects:delete');

@@ -74,6 +74,9 @@ export const withPermission = (handler, permission) => {
            if (projectAssignment && projectAssignment.role) {
              const projPerms = projectAssignment.role.permissions || [];
              perms = [...perms, ...projPerms];
+             if (projectAssignment.role.name === "Admin" || projectAssignment.role.isSystemRole) {
+               perms.push("*");
+             }
            }
         }
       }

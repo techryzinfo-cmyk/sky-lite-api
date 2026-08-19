@@ -20,11 +20,7 @@ export const GET = withAuth(async function (req, { params }) {
       // Return a default structure if not found
       return NextResponse.json({ 
         project: id, 
-        levels: [
-          { level: 1, role: "Site Supervisor", responseTime: "4 Hours" },
-          { level: 2, role: "Project Manager", responseTime: "24 Hours" },
-          { level: 3, role: "Operations Head", responseTime: "48 Hours" }
-        ] 
+        levels: [] 
       });
     }
 

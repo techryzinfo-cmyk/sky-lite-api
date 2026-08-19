@@ -1,10 +1,33 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Milestone from "@/models/Milestone";
-import { withAuth } from "@/lib/middleware";
+import User from "@/models/User";
+import { withAuth, withPermission } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
 
-export const GET = withAuth(async function (req, { params }) {
+// Duplicated per-file, matching this codebase's convention (no shared
+// permission helpers across API route files).
+async function userHasTasksPermission(req, projectId, permission) {
+  if (req.user.role === "Admin") return true;
+  const userWithRole = await User.findById(req.user.id)
+    .populate("role")
+    .populate("projects.role")
+    .select("role projects");
+  let perms = userWithRole?.role?.permissions || [];
+  if (!perms.includes("*") && !perms.includes(permission)) {
+    const projectAssignment = userWithRole.projects?.find((p) => p.project.toString() === projectId);
+    if (projectAssignment?.role) {
+      const projPerms = projectAssignment.role.permissions || [];
+      perms = [...perms, ...projPerms];
+      if (projectAssignment.role.name === "Admin" || projectAssignment.role.isSystemRole) {
+        perms.push("*");
+      }
+    }
+  }
+  return perms.includes("*") || perms.includes(permission);
+}
+
+export const GET = withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
@@ -18,13 +41,20 @@ export const GET = withAuth(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error fetching milestones" }, { status: 500 });
   }
-});
+}, "tasks:view");
 
 export const POST = withAuth(async function (req, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
     const { name, description, dueDate, status, tasks } = await req.json();
+
+    if (!(await userHasTasksPermission(req, id, "tasks:create"))) {
+      return NextResponse.json({ message: "Forbidden: No task creation permission" }, { status: 403 });
+    }
+    if ((tasks || []).some(t => t.assignedTo) && !(await userHasTasksPermission(req, id, "tasks:assign"))) {
+      return NextResponse.json({ message: "Forbidden: No task assignment permission" }, { status: 403 });
+    }
 
     const milestoneData = {
       name,
@@ -34,7 +64,11 @@ export const POST = withAuth(async function (req, { params }) {
       project: id,
       organization: req.user.organizationId,
       createdBy: req.user.id,
-      tasks: tasks || [],
+      tasks: (tasks || []).map(t => ({
+        ...t,
+        createdBy: req.user.id,
+        createdByName: req.user.name,
+      })),
     };
 
     const milestone = new Milestone(milestoneData);

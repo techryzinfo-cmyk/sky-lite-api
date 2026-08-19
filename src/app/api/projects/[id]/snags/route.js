@@ -8,6 +8,7 @@ import { recordAudit } from "@/lib/auditHelper";
 import { sendEmail } from "@/lib/email";
 import { snagAssignedEmail } from "@/lib/emailTemplates";
 import { emitToProject } from "@/lib/socket-server";
+import RiskEngine from "@/lib/riskEngine";
 
 export const GET = withAuth(async function (req, { params }) {
   try {
@@ -47,22 +48,26 @@ export const POST = withAuth(async function (req, { params }) {
       await recordAudit(project, req.user, "SnagAdded", `Snag reported: ${body.title}`);
     }
 
+    // Auto-generate Risk if High/Critical
+    if (body.priority === 'High' || body.priority === 'Critical') {
+      await RiskEngine.evaluateAndCreateRisk({
+        projectId: id,
+        organizationId: req.user.organizationId,
+        user: req.user,
+        sourceType: 'Snag',
+        sourceId: newSnag._id,
+        sourceName: body.title,
+        title: `Snag Risk: ${body.title}`,
+        category: 'Technical',
+        description: `Auto-generated risk from a ${body.priority} priority snag: ${body.description || body.title}`,
+        impact: body.priority === 'Critical' ? 'Very High' : 'High',
+        probability: 'High'
+      }).catch(err => console.error("Risk auto-gen failed for snag:", err));
+    }
+
     // Email the assigned user (if any)
     if (body.assignedTo) {
-      const assignee = await User.findById(body.assignedTo).select("name email");
-      if (assignee?.email) {
-        sendEmail({
-          to: assignee.email,
-          subject: `Snag Assigned to You — ${body.title}`,
-          html: snagAssignedEmail({
-            assigneeName: assignee.name,
-            reporterName: req.user.name || "Team Member",
-            projectName: project?.name || "Project",
-            snagTitle: body.title,
-            priority: body.priority,
-          }),
-        });
-      }
+      // Email sending disabled per user request
     }
 
     emitToProject(id, 'snag:created', { snagId: newSnag._id.toString() });

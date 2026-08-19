@@ -114,5 +114,5 @@ const SiteSurveySchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.SiteSurvey;
+
 export default mongoose.models.SiteSurvey || mongoose.model("SiteSurvey", SiteSurveySchema);

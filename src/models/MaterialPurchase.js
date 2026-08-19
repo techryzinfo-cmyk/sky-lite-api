@@ -47,6 +47,7 @@ const MaterialPurchaseSchema = new mongoose.Schema(
     commonNote: String,
     invoiceUrl: String,
     billNumber: String,
+    deliveryDate: Date,
     
     status: {
       type: String,
@@ -66,5 +67,5 @@ const MaterialPurchaseSchema = new mongoose.Schema(
 );
 
 
-delete mongoose.models.MaterialPurchase;
-export default mongoose.model("MaterialPurchase", MaterialPurchaseSchema);
+
+export default mongoose.models.MaterialPurchase || mongoose.model("MaterialPurchase", MaterialPurchaseSchema);

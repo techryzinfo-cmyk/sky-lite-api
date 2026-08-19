@@ -82,5 +82,5 @@ FFEItemSchema.pre("save", function () {
   this.totalCost = (this.quantity || 0) * (this.unitCost || 0);
 });
 
-delete mongoose.models.FFEItem;
+
 export default mongoose.models.FFEItem || mongoose.model("FFEItem", FFEItemSchema);

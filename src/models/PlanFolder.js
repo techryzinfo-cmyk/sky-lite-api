@@ -23,6 +23,7 @@ const AnnotationSchema = new mongoose.Schema(
     text:         { type: String, default: '' },
     imageUri:     { type: String, default: '' },
     videoUri:     { type: String, default: '' },
+    audioUri:     { type: String, default: '' },
     createdBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     createdByName:{ type: String, default: '' },
     createdAt:    { type: Date, default: Date.now },
@@ -84,5 +85,5 @@ const PlanFolderSchema = new mongoose.Schema(
   }
 );
 
-delete mongoose.models.PlanFolder;
+delete mongoose.model.PlanFolder
 export default mongoose.models.PlanFolder || mongoose.model("PlanFolder", PlanFolderSchema);

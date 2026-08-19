@@ -7,6 +7,11 @@ const ProjectSchema = new mongoose.Schema(
       required: [true, "Please provide a project name"],
       trim: true,
     },
+    projectCode: {
+      type: String,
+      
+      sparse: true,
+    },
     description: {
       type: String,
       trim: true,
@@ -14,11 +19,16 @@ const ProjectSchema = new mongoose.Schema(
     currency: {
       type: String,
       required: true,
-      default: "AED",
+      default: "QAR",
     },
     area: {
       type: Number,
       default: null,
+    },
+    areaUnit: {
+      type: String,
+      enum: ["sqft", "sqm"],
+      default: "sqft",
     },
     projectType: {
       type: String,
@@ -119,6 +129,21 @@ const ProjectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    clientRepName: {
+      type: String,
+      trim: true,
+    },
+    handoverDate: {
+      type: Date,
+    },
+    handoverNotes: {
+      type: String,
+      trim: true,
+    },
+    handoverCertificateUrls: {
+      type: [String],
+      default: undefined,
+    },
     documents: [
       {
         url: String,
@@ -177,3 +202,4 @@ const ProjectSchema = new mongoose.Schema(
 );
 delete mongoose.models.Project;
 export default mongoose.models.Project || mongoose.model("Project", ProjectSchema);
+   

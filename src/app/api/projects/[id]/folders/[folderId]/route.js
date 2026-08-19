@@ -3,9 +3,34 @@ import dbConnect from "@/lib/db";
 import PlanFolder from "@/models/PlanFolder";
 import Project from "@/models/Project";
 import User from "@/models/User";
-import Role from "@/models/Role";
 import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
+
+// Role.findOne({ name: req.user.role }) only ever sees the user's GLOBAL
+// role — it silently misses permissions granted via a project-specific role
+// assignment (User.projects[].role), which is how members are typically
+// scoped in practice. That gap is why holders of a project-scoped
+// "plans:delete"/"plans:approve" permission could still get 403'd. This
+// checks both, same as withPermission does.
+async function userHasPlansPermission(req, projectId, permission) {
+  if (req.user.role === "Admin") return true;
+  const userWithRole = await User.findById(req.user.id)
+    .populate("role")
+    .populate("projects.role")
+    .select("role projects");
+  let perms = userWithRole?.role?.permissions || [];
+  if (!perms.includes("*") && !perms.includes(permission)) {
+    const projectAssignment = userWithRole.projects?.find((p) => p.project.toString() === projectId);
+    if (projectAssignment?.role) {
+      const projPerms = projectAssignment.role.permissions || [];
+      perms = [...perms, ...projPerms];
+      if (projectAssignment.role.name === "Admin" || projectAssignment.role.isSystemRole) {
+        perms.push("*");
+      }
+    }
+  }
+  return perms.includes("*") || perms.includes(permission);
+}
 
 // PUT /api/projects/[id]/folders/[folderId]
 // Add a document to a folder
@@ -15,6 +40,10 @@ export const PUT = withAuth(async function (req, { params }) {
   try {
     const { id, folderId } = await params;
     await dbConnect();
+
+    if (!(await userHasPlansPermission(req, id, "plans:create"))) {
+      return NextResponse.json({ message: "Forbidden: Insufficient permissions" }, { status: 403 });
+    }
 
     let { url, name, mimeType, size, documentId } = await req.json();
 
@@ -108,9 +137,13 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     // ── 0. Folder Rename Logic ────────────────────────────────────
     if (name && !docId && !action) {
+      if (!(await userHasPlansPermission(req, id, "plans:update"))) {
+        return NextResponse.json({ message: "Forbidden: Insufficient permissions" }, { status: 403 });
+      }
+
       const folder = await PlanFolder.findOne({ _id: folderId, project: id });
       if (!folder) return NextResponse.json({ message: "Folder not found" }, { status: 404 });
-      
+
       const oldName = folder.name;
       folder.name = name.trim();
       await folder.save();
@@ -153,13 +186,14 @@ export const PATCH = withAuth(async function (req, { params }) {
     if (!version) return NextResponse.json({ message: "Version not found" }, { status: 404 });
 
     const isAdmin = req.user.role === "Admin";
-    const userRoleDoc = await Role.findOne({ name: req.user.role, organization: req.user.organizationId });
-    const hasDeletePermission = isAdmin || userRoleDoc?.permissions?.includes("plans:delete");
+    const hasDeletePermission = await userHasPlansPermission(req, id, "plans:delete");
+    const hasApprovePermission = await userHasPlansPermission(req, id, "plans:approve");
+    const hasAssignPermission = await userHasPlansPermission(req, id, "plans:assign");
 
     // ── 1. sendForApproval ──────────────────────────────────────────
     if (action === "sendForApproval") {
-      if (!isAdmin) {
-        return NextResponse.json({ message: "Only admins can send plans for approval" }, { status: 403 });
+      if (!isAdmin && !hasAssignPermission) {
+        return NextResponse.json({ message: "You don't have permission to send plans for approval" }, { status: 403 });
       }
 
       const { approverIds } = body;
@@ -207,11 +241,8 @@ export const PATCH = withAuth(async function (req, { params }) {
         return NextResponse.json({ message: "response must be Approved or Rejected" }, { status: 400 });
       }
 
-      if (!isAdmin) {
-        const userRole = await Role.findOne({ name: req.user.role, organization: req.user.organizationId });
-        if (!userRole?.permissions?.includes("plans:approve")) {
-          return NextResponse.json({ message: "You don't have permission to approve or reject plans" }, { status: 403 });
-        }
+      if (!isAdmin && !hasApprovePermission) {
+        return NextResponse.json({ message: "You don't have permission to approve or reject plans" }, { status: 403 });
       }
 
       const entry = version.approvals.find((a) => a.user.toString() === req.user.id);
@@ -360,6 +391,10 @@ export const DELETE = withAuth(async function (req, { params }) {
   try {
     const { id, folderId } = await params;
     await dbConnect();
+
+    if (!(await userHasPlansPermission(req, id, "plans:delete"))) {
+      return NextResponse.json({ message: "Forbidden: Insufficient permissions" }, { status: 403 });
+    }
 
     const folder = await PlanFolder.findOneAndDelete({ _id: folderId, project: id });
     if (!folder) {

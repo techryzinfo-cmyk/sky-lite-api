@@ -85,5 +85,5 @@ MaterialSchema.virtual("balance").get(function () {
 // Set virtuals to true for toJSON and toObject
 MaterialSchema.set("toJSON", { virtuals: true });
 MaterialSchema.set("toObject", { virtuals: true });
-delete mongoose.models.Material;
+
 export default mongoose.models.Material || mongoose.model("Material", MaterialSchema);

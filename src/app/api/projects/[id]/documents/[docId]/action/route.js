@@ -6,10 +6,37 @@ import { withAuth } from "@/lib/middleware";
 import { emitToProject } from "@/lib/socket-server";
 import { sendEmail } from "@/lib/email";
 import { documentDecisionEmail } from "@/lib/emailTemplates";
+import RiskEngine from "@/lib/riskEngine";
+
+// req.user (the JWT payload) only ever carries {id, role, organizationId,
+// name} — there is no `permissions` array on it, so `req.user.permissions`
+// is always undefined. Any check against it silently fails for everyone
+// except literal Admins, which is why a "land:approve" holder still got
+// 403'd. This looks the permission up properly, including project-specific
+// role overrides.
+async function userHasLandPermission(req, projectId, permission) {
+  if (req.user.role === "Admin") return true;
+  const userWithRole = await User.findById(req.user.id)
+    .populate("role")
+    .populate("projects.role")
+    .select("role projects");
+  let perms = userWithRole?.role?.permissions || [];
+  if (!perms.includes("*") && !perms.includes(permission)) {
+    const projectAssignment = userWithRole.projects?.find((p) => p.project.toString() === projectId);
+    if (projectAssignment?.role) {
+      const projPerms = projectAssignment.role.permissions || [];
+      perms = [...perms, ...projPerms];
+      if (projectAssignment.role.name === "Admin" || projectAssignment.role.isSystemRole) {
+        perms.push("*");
+      }
+    }
+  }
+  return perms.includes("*") || perms.includes(permission);
+}
 
 /**
  * PATCH /api/projects/:id/documents/:docId/action
- * 
+ *
  * Approves or Rejects a compliance document.
  */
 export const PATCH = withAuth(async function (req, { params }) {
@@ -25,8 +52,8 @@ export const PATCH = withAuth(async function (req, { params }) {
 
     // Check permissions
     const isAdmin = req.user.role === "Admin";
-    const canApprove = isAdmin || req.user.permissions?.includes("land:approve") || req.user.permissions?.includes("*");
-    
+    const canApprove = await userHasLandPermission(req, id, "land:approve");
+
     if (!canApprove) {
       return NextResponse.json({ message: "Forbidden: No approval permission" }, { status: 403 });
     }
@@ -63,6 +90,23 @@ export const PATCH = withAuth(async function (req, { params }) {
     });
 
     await project.save();
+
+    // Auto-generate Compliance Risk if document is rejected
+    if (action === "Rejected") {
+      await RiskEngine.evaluateAndCreateRisk({
+        projectId: id,
+        organizationId: req.user.organizationId,
+        user: req.user,
+        sourceType: 'Document',
+        sourceId: document._id,
+        sourceName: document.name,
+        title: `Compliance Risk: ${document.name} Rejected`,
+        category: 'Legal',
+        description: `Auto-generated risk: The compliance document "${document.name}" was rejected by ${req.user.name || "Admin"}. Immediate action required.`,
+        impact: 'High',
+        probability: 'High'
+      }).catch(err => console.error("Risk auto-gen failed for document:", err));
+    }
 
     // Notify the document uploader of the decision
     const uploaderUserId = document.uploadedBy?.user;

@@ -78,5 +78,5 @@ const IssueSchema = new mongoose.Schema(
 );
 
 // Clear model cache to prevent recompilation errors in Next.js dev mode
-delete mongoose.models.Issue;
+
 export default mongoose.models.Issue || mongoose.model("Issue", IssueSchema);

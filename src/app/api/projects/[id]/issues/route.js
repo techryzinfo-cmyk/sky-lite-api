@@ -8,6 +8,7 @@ import { recordAudit } from "@/lib/auditHelper";
 import { sendEmail } from "@/lib/email";
 import { issueAssignedEmail } from "@/lib/emailTemplates";
 import { emitToProject } from "@/lib/socket-server";
+import RiskEngine from "@/lib/riskEngine";
 
 export const GET = withAuth(async function (req, { params }) {
   try {
@@ -47,6 +48,24 @@ export const POST = withAuth(async function (req, { params }) {
     const project = await Project.findById(id);
     if (project) {
       await recordAudit(project, req.user, "IssueAdded", `Issue reported: ${body.title}`);
+    }
+
+    // Auto-generate Risk if High/Critical
+    if (body.priority === 'High' || body.priority === 'Critical') {
+      const isSafety = body.category === 'Safety';
+      await RiskEngine.evaluateAndCreateRisk({
+        projectId: id,
+        organizationId: req.user.organizationId,
+        user: req.user,
+        sourceType: 'Issue',
+        sourceId: newIssue._id,
+        sourceName: body.title,
+        title: `${isSafety ? 'Safety' : 'Quality'} Risk: ${body.title}`,
+        category: isSafety ? 'Safety' : 'Technical',
+        description: `Auto-generated risk from a ${body.priority} priority issue: ${body.description || body.title}`,
+        impact: body.priority === 'Critical' ? 'Very High' : 'High',
+        probability: 'High'
+      }).catch(err => console.error("Risk auto-gen failed for issue:", err));
     }
 
     // Email the assigned user (if any)

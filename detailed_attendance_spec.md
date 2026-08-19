@@ -1,6 +1,6 @@
 # Sky Lite Geo-Attendance System: Detailed Specification & User Journey
 
-This document provides a comprehensive blueprint for the Sky Lite Geo-Attendance feature. It combines the required architectural changes with an in-depth explanation of every schema field and a step-by-step practical user journey for the final integrated system.
+This document provides a comprehensive blueprint for the Sky Lite Geo-Attendance feature. It combines the required architectural changes with an in-depth explanation of every schema field and a step-by-step practical user journey for the final integrated system.//
 
 ---
 

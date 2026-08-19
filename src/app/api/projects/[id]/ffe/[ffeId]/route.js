@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import FFEItem from "@/models/FFEItem";
-import { withSubscription } from "@/lib/middleware";
+import { withSubscription, withPermission } from "@/lib/middleware";
 
 // PATCH /api/projects/[id]/ffe/[ffeId]
-export const PATCH = withSubscription(async function (req, { params }) {
+export const PATCH = withSubscription(withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { ffeId } = await params;
@@ -30,10 +30,10 @@ export const PATCH = withSubscription(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error updating FFE item" }, { status: 500 });
   }
-}, "interior");
+}, "ffe:update"), "interior");
 
 // DELETE /api/projects/[id]/ffe/[ffeId]
-export const DELETE = withSubscription(async function (req, { params }) {
+export const DELETE = withSubscription(withPermission(async function (req, { params }) {
   try {
     await dbConnect();
     const { ffeId } = await params;
@@ -47,4 +47,4 @@ export const DELETE = withSubscription(async function (req, { params }) {
   } catch (error) {
     return NextResponse.json({ message: "Error deleting FFE item" }, { status: 500 });
   }
-}, "interior");
+}, "ffe:delete"), "interior");

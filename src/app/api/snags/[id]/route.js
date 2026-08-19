@@ -66,39 +66,11 @@ export const PATCH = withAuth(async function (req, { params }) {
     // Email new assignee if assignment changed
     const newAssigneeId = body.assignedTo;
     const assigneeChanged = newAssigneeId && newAssigneeId !== snag.assignedTo?.toString();
-    if (assigneeChanged) {
-      const assignee = await User.findById(newAssigneeId).select("name email");
-      if (assignee?.email) {
-        sendEmail({
-          to: assignee.email,
-          subject: `Snag Assigned to You — ${snag.title}`,
-          html: snagAssignedEmail({
-            assigneeName: assignee.name,
-            reporterName: req.user.name || "Team Member",
-            projectName: project?.name || "Project",
-            snagTitle: snag.title,
-            priority: snag.priority,
-          }),
-        });
-      }
-    }
+    // Email sending disabled per user request
 
     // Email existing assignee on status change
     if (body.status && body.status !== snag.status && snag.assignedTo && !assigneeChanged) {
-      const assignee = await User.findById(snag.assignedTo).select("name email");
-      if (assignee?.email) {
-        sendEmail({
-          to: assignee.email,
-          subject: `Snag Status Updated — ${snag.title}`,
-          html: snagStatusEmail({
-            recipientName: assignee.name,
-            snagTitle: snag.title,
-            newStatus: body.status,
-            updatedByName: req.user.name || "Team Member",
-            projectName: project?.name || "Project",
-          }),
-        });
-      }
+      // Email sending disabled per user request
     }
 
     return NextResponse.json(updatedSnag);

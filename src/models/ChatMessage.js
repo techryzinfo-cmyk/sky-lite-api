@@ -65,6 +65,5 @@ const ChatMessageSchema = new mongoose.Schema(
 );
 
 // Delete existing model if it exists to prevent OverwriteModelError in Next.js HMR
-delete mongoose.models.ChatMessage;
 
 export default mongoose.models.ChatMessage || mongoose.model("ChatMessage", ChatMessageSchema);

@@ -89,5 +89,5 @@ const AttendanceSchema = new mongoose.Schema(
 AttendanceSchema.index({ project: 1, attendanceDate: 1 });
 AttendanceSchema.index({ user: 1, attendanceDate: 1 });
 
-delete mongoose.models.Attendance;
+
 export default mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);

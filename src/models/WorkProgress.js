@@ -51,6 +51,6 @@ const WorkProgressSchema = new mongoose.Schema(
 WorkProgressSchema.index({ project: 1, date: 1 });
 WorkProgressSchema.index({ project: 1, milestone: 1, date: 1 });
 
-delete mongoose.models.WorkProgress;
+
 export default mongoose.models.WorkProgress ||
   mongoose.model("WorkProgress", WorkProgressSchema);
